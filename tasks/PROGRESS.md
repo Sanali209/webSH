@@ -29,8 +29,8 @@ This file tracks the execution of each task defined in the `tasks/` directory.
 - [x] 01_web_parser_plugin: Web Crawler, Embedding
 - [x] 02_deduplicator_plugin: Hash calculation, Duplicate query
 - [x] 03_resource_controller: Quotas, Monitoring API
-- [ ] 04_performance_testing: Benchmarks (LanceDB, Polars)
-- [ ] 05_script_engine_plugin: Script Engine & Workflow Execution
+- [x] 04_performance_testing: Benchmarks (LanceDB, Polars)
+- [x] 05_script_engine_plugin: Script Engine & Workflow Execution
 
 ## Phase 5: Optimization & UI Polish
 - [ ] 01_notifications: NotificationManager, Toast UI
