@@ -5,6 +5,7 @@ import logging
 from typing import List, Dict, Optional, Type
 from pydantic import BaseModel, Field, ValidationError
 from core.sdk import PluginBase, PluginContext
+from core.database_manager import db_manager, PluginDatabaseContext
 
 logger = logging.getLogger(__name__)
 
@@ -114,7 +115,16 @@ class PluginLoader:
                     return None
 
                 # Instantiate and initialize
-                context = PluginContext(plugin_id=plugin_id)
+
+                # Create scoped DB context
+                db_context = PluginDatabaseContext(
+                    plugin_id=plugin_id,
+                    db_manager=db_manager,
+                    permissions=manifest.permissions
+                )
+
+                context = PluginContext(plugin_id=plugin_id, db_context=db_context)
+
                 plugin_instance = plugin_class()
                 plugin_instance.on_load(context)
                 self.loaded_plugins[plugin_id] = plugin_instance

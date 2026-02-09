@@ -12,13 +12,14 @@ class PluginContext:
     """
     Context object provided to plugins, giving access to core capabilities.
     """
-    def __init__(self, plugin_id: str):
+    def __init__(self, plugin_id: str, db_context: Any = None):
         self.plugin_id = plugin_id
+        # This will be replaced by the actual PluginDatabaseContext instance
+        self.db = db_context
 
     def get_my_table(self) -> str:
         """
-        Returns the scoped table name for this plugin.
-        For now, this just returns a string. In Phase 2, this will return a LanceDB table.
+        Deprecated: Use self.db.get_my_table().
         """
         return f"plugin_{self.plugin_id}_data"
 
