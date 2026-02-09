@@ -19,9 +19,9 @@ This file tracks the execution of each task defined in the `tasks/` directory.
 - [x] 06_workflow_infrastructure: Core Workflow Types & Decorators
 
 ## Phase 3: System Plugins Implementation
-- [ ] 01_system_fs: File System Plugin (watchdog, backend)
+- [x] 01_system_fs: File System Plugin (watchdog, backend)
 - [ ] 02_system_llm: LLM Provider Plugin (Embeddings)
-- [ ] 03_frontend_core_integration: ModuleLoader, SlotManager
+- [x] 03_frontend_core_integration: ModuleLoader, SlotManager
 - [ ] 04_e2e_tests: Playwright setup & scenario
 - [ ] 05_system_dashboard: Dashboard UI & Widget Host
 
