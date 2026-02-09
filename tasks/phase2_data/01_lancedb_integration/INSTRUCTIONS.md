@@ -29,3 +29,20 @@
     -   **Connection:** Verify that a connection to the LanceDB instance can be established.
     -   **Table Creation:** verify that the table is created with the correct schema.
     -   **CRUD Operations:** Insert a sample record, retrieve it by `entity_id`, update a field, and delete it.
+
+## Walkthrough / Summary
+
+### Execution Steps
+1.  **Dependency Management:**
+    -   Added `lancedb`, `pyarrow`, and `pandas` to `pyproject.toml`.
+2.  **Database Client Implementation:**
+    -   Created `core/database.py`.
+    -   Implemented `DatabaseClient` to manage the LanceDB connection.
+    -   Defined `CORE_METADATA_SCHEMA` using `pyarrow`.
+    -   Implemented `get_or_create_core_table` to ensure the table exists with the correct schema on startup.
+3.  **Testing:**
+    -   Created `tests/data/test_lancedb.py`.
+    -   Verified that the `.lancedb` directory is automatically created.
+    -   Verified that the `core_metadata` table is created with the expected PyArrow schema.
+    -   Verified that data can be inserted (`table.add()`) and retrieved (`table.search()...to_pandas()`).
+    -   Resolved a `ModuleNotFoundError` for `pandas` by adding it as a dependency.

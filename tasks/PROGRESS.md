@@ -11,7 +11,7 @@ This file tracks the execution of each task defined in the `tasks/` directory.
 - [x] 06_testing: Unit & Integration tests
 
 ## Phase 2: Data & Search Engine
-- [ ] 01_lancedb_integration: LanceDB setup, Core Metadata Schema
+- [x] 01_lancedb_integration: LanceDB setup, Core Metadata Schema
 - [ ] 02_database_orchestrator: DatabaseManager, Scoped Access
 - [ ] 03_migration_engine: Schema versioning, Migration logic
 - [ ] 04_search_orchestrator: Hybrid Search, Rank Fusion
