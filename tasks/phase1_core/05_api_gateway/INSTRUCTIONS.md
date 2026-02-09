@@ -1,6 +1,6 @@
 # API Gateway
 
-**Goal:** Create the main FastAPI application and set up routing and middleware.
+**Goal:** Create the main FastAPI application and set up routing, middleware, and static file serving for the frontend.
 
 ## Steps
 
@@ -17,12 +17,20 @@
     - Check if the plugin exposes a FastAPI router.
     - Use `app.include_router()` to mount the plugin's router under `/api/plugins/{plugin_id}`.
 
+4.  **Serve Frontend (SPA)**
+    - Check if the `dist/` directory exists (build output from Svelte).
+    - If it exists:
+        - Mount `dist/assets` to `/assets`.
+        - Implement a "Catch-all" route (`/{full_path:path}`) that serves `dist/index.html` for any path *not* starting with `/api`.
+    - This allows Svelte's client-side routing to handle navigation while FastAPI serves the app shell.
+
 ## Testing
 
 -   **Integration Tests (`tests/core/test_api.py`):**
     -   **Endpoint Reachability:** Verify that base endpoints are reachable.
     -   **Middleware:** create a dummy route that raises an exception and verify the middleware catches it and returns the expected JSON structure.
     -   **Plugin Routing:** Load a dummy plugin with a router, and verify its endpoints are accessible via `/api/plugins/{dummy_id}/...`.
+    -   **Static Serving:** Mock the existence of `dist/index.html` and verify that a GET request to `/some-random-page` returns the HTML content (SPA support).
 
 ## Walkthrough / Summary
 
@@ -38,7 +46,10 @@
         -   Dynamically mount these routers using `app.include_router(..., prefix="/api/plugins/{id}")`.
     -   Added `app.add_middleware(SandboxMiddleware)` to the FastAPI app.
     -   Added an endpoint `/api/plugins` to list loaded plugins (useful for frontend).
-3.  **Testing:**
+3.  **Frontend Serving Configuration:**
+    -   Added conditional mounting of `StaticFiles` for `dist/` if the directory exists.
+    -   Added a catch-all route to serve `index.html` for SPA routing, ensuring API routes take precedence.
+4.  **Testing:**
     -   Created `tests/core/test_api.py` and a helper `tests/assets/dummy_plugin.py`.
     -   **Reachability:** Verified the root endpoint `/` returns 200.
     -   **Router Mounting:** Manually mounted a `DummyPlugin` router and verified its endpoints are accessible.

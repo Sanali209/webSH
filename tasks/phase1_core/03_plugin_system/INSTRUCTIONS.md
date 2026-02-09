@@ -24,6 +24,12 @@
     - Use `importlib` to dynamically load the Python module for each plugin.
     - Instantiate the plugin class.
 
+5.  **Mount Plugin UI Resources**
+    - In `PluginLoader` (or when loading the plugin in `main.py`):
+    - Check if the plugin has a `ui/` directory.
+    - If yes, mount it as a static file path: `/plugins/{plugin_id}/ui`.
+    - This enables the frontend to dynamically import plugin assets.
+
 ## Testing
 
 -   **Unit Tests (`tests/core/test_plugin_manager.py`):**
@@ -31,6 +37,7 @@
     -   **Invalid Manifest:** Create a dummy plugin with a missing or invalid `manifest.json` and verify it is rejected.
     -   **Dependency Resolution:** Create multiple dummy plugins with dependencies and verify the load order is correct.
     -   **Circular Dependency:** Create plugins with circular dependencies and verify the loader raises an error.
+    -   **UI Mounting:** Verify that if a `ui` folder exists, it is correctly identified (integration test with API Gateway).
 
 ## Walkthrough / Summary
 

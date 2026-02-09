@@ -7,7 +7,7 @@
 1.  **Implement `ModuleLoader`**
     - In `web/src/lib/core/module_loader.ts` (or similar).
     - Fetch list of active plugins from `/api/plugins`.
-    - Use dynamic imports (`import()`) to load the plugin's main entry point or specific components.
+    - Use dynamic imports (`import()`) to load the plugin's main entry point from the served static path: `/plugins/{plugin_id}/ui/index.js`.
 
 2.  **Implement `SlotManager`**
     - Create `web/src/lib/core/SlotManager.svelte`.
@@ -18,5 +18,5 @@
 ## Testing
 
 -   **Unit Tests (Frontend):**
-    -   **Loader:** specific test that `ModuleLoader` correctly fetches the plugin list and attempts to import.
+    -   **Loader:** specific test that `ModuleLoader` correctly fetches the plugin list and attempts to import from the correct URL structure.
     -   **Slot:** Render `SlotManager` with mock plugin data and verify components are rendered.
