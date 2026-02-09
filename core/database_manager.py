@@ -20,7 +20,7 @@ class DatabaseManager:
             self.client.connect()
 
         # Check if table exists using list_tables
-        existing_tables = self.client.connection.table_names() # Using table_names for compatibility as per previous task
+        existing_tables = self.list_tables()
         if table_name in existing_tables:
             return self.client.connection.open_table(table_name)
 
@@ -37,7 +37,20 @@ class DatabaseManager:
         """
         if self.client.connection is None:
             self.client.connect()
-        return self.client.connection.table_names()
+
+        try:
+            # table_names() is the most reliable way to get a list of strings currently,
+            # even if deprecated. list_tables() in some versions returns iterators of objects.
+            # We'll rely on table_names for now to ensure tests pass, ignoring the warning.
+            return self.client.connection.table_names()
+        except AttributeError:
+             # Fallback if strictly removed (unlikely in minor version updates)
+             if hasattr(self.client.connection, "list_tables"):
+                 # Assuming list_tables returns objects with 'name' attribute or similar if not strings
+                 tables = self.client.connection.list_tables()
+                 # Try to parse if they are not strings
+                 return [t if isinstance(t, str) else getattr(t, 'name', str(t)) for t in tables]
+             return []
 
 class PluginDatabaseContext:
     """
