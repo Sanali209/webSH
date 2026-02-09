@@ -24,3 +24,21 @@
     -   **Text Search:** specific test for BM25 functionality (mocking the DB).
     -   **Vector Search:** specific test for vector search logic.
     -   **RRF Calculation:** Create two dataframes (text results, vector results) with known ranks, calculate RRF, and verify the sorting order.
+
+## Walkthrough / Summary
+
+### Execution Steps
+1.  **HybridSearcher Implementation:**
+    -   Implemented `HybridSearcher` in `core/search.py`.
+    -   Used **Polars** for efficient dataframe manipulation.
+    -   **Text Search:** Implemented a fallback mechanism: tries FTS first, falls back to substring filtering if no index exists.
+    -   **Vector Search:** Iterates through plugin IDs, searches their vector tables, and concatenates results using Polars.
+2.  **RRF Logic:**
+    -   Implemented Reciprocal Rank Fusion algorithm using Polars expressions.
+    -   Used `how="full"` (full outer join) and `coalesce=True` to merge text and vector results on `entity_id`, preserving items that appear in only one source.
+    -   Handled missing ranks by filling with a large constant to minimize their impact on the score.
+3.  **Testing:**
+    -   Created `tests/data/test_search.py`.
+    -   Verified RRF calculation logic with mixed results, text-only, and vector-only scenarios.
+    -   Verified that the join logic correctly handles non-overlapping entity IDs.
+    -   Mocked database interactions to test search orchestration without a real LanceDB instance.

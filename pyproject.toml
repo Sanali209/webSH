@@ -19,6 +19,7 @@ python-multipart = "^0.0.9"
 lancedb = "^0.29.1"
 pyarrow = "^23.0.0"
 pandas = "^3.0.0"
+polars = "^1.38.1"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.0.0"
