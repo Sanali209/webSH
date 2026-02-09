@@ -85,6 +85,7 @@ class PluginLoader:
         """
         Dynamically loads the plugin module and instantiates the plugin class.
         Optionally mounts the plugin's UI directory if provided with an app instance.
+        Also scans for and loads workflow.py if present to register nodes.
         """
         if plugin_id not in self.manifests:
             logger.error(f"Plugin {plugin_id} not found in manifests.")
@@ -107,7 +108,7 @@ class PluginLoader:
                     app.mount(mount_path, StaticFiles(directory=ui_path), name=f"ui_{plugin_id}")
                     logger.info(f"Mounted UI for plugin {plugin_id} at {mount_path}")
 
-            # unique module name to avoid conflicts
+            # 1. Load Main Module (backend.py)
             module_name = f"plugins.{plugin_id}.backend"
             spec = importlib.util.spec_from_file_location(module_name, plugin_path)
             if spec and spec.loader:
@@ -127,8 +128,6 @@ class PluginLoader:
                     return None
 
                 # Instantiate and initialize
-
-                # Create scoped DB context
                 db_context = PluginDatabaseContext(
                     plugin_id=plugin_id,
                     db_manager=db_manager,
@@ -141,6 +140,17 @@ class PluginLoader:
                 plugin_instance.on_load(context)
                 self.loaded_plugins[plugin_id] = plugin_instance
                 logger.info(f"Successfully loaded plugin: {plugin_id}")
+
+                # 2. Load Workflow Module (workflow.py) if exists
+                workflow_path = os.path.join(plugin_root, "workflow.py")
+                if os.path.exists(workflow_path):
+                    wf_module_name = f"plugins.{plugin_id}.workflow"
+                    wf_spec = importlib.util.spec_from_file_location(wf_module_name, workflow_path)
+                    if wf_spec and wf_spec.loader:
+                        wf_module = importlib.util.module_from_spec(wf_spec)
+                        wf_spec.loader.exec_module(wf_module)
+                        logger.info(f"Loaded workflow module for plugin: {plugin_id}")
+
                 return plugin_instance
 
         except Exception as e:
