@@ -1,0 +1,26 @@
+# Dockerfile exclusions
+# ---
+.git
+.github
+.gitignore
+.dockerignore
+docs/
+tests/
+venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+dist/
+build/
+.pytest_cache/
+.mypy_cache/
+htmlcov/
+*.log
+.coverage
+.env
+# Frontend exclusions
+web/node_modules/
+web/dist/

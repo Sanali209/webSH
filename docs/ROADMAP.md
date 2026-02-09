@@ -1,4 +1,4 @@
-# Roadmap: PC Center OS (v2.0)
+# Roadmap: PC Center OS (v2.1)
 
 Этот документ описывает план разработки **PC Center** по стадиям, от базового ядра до полноценной экосистемы плагинов.
 
@@ -12,10 +12,19 @@
   - [ ] Настройка окружения (Poetry/Pipenv, Docker Compose).
   - [ ] Базовый `main.py` с FastAPI.
 
+- [ ] **Core SDK Implementation:**
+  - [ ] Разработка базового класса `PluginBase`.
+  - [ ] Создание хелперов для работы с БД и Taskiq.
+  - [ ] Определение стандартных Pydantic-моделей для настроек.
+
 - [ ] **Plugin System (Pluggy):**
   - [ ] `PluginManager`: Логика сканирования `/plugins` и чтения `manifest.json`.
   - [ ] `DependencyGraph`: Проверка зависимостей и порядка загрузки.
   - [ ] `LifecycleHooks`: Реализация хуков `on_load`, `on_activate`.
+
+- [ ] **Testing Infrastructure:**
+  - [ ] **Unit Tests:** Покрытие тестами компонентов ядра (EventBus, PluginManager).
+  - [ ] **Integration Tests:** Тесты загрузки фиктивных плагинов.
 
 - [ ] **Event Orchestrator & Tracing:**
   - [ ] Асинхронная шина событий (`AsyncEventBus`).
@@ -25,10 +34,6 @@
 - [ ] **API Gateway & Isolation:**
   - [ ] Динамическое монтирование роутов (`app.include_router`).
   - [ ] `SandboxMiddleware`: Перехват исключений плагинов (Error Boundaries).
-
-- [ ] **Capability Registry:**
-  - [ ] Реестр возможностей (`opener:`, `searcher:`).
-  - [ ] API для регистрации возможностей плагинами.
 
 ---
 
@@ -53,10 +58,9 @@
   - [ ] Интеграция **Polars** для объединения результатов (Join).
   - [ ] Алгоритм **Reciprocal Rank Fusion (RRF)**.
 
-- [ ] **Settings Management:**
-  - [ ] Сбор Pydantic-моделей настроек плагинов (`config.py`).
-  - [ ] Генерация JSON Schema для фронтенда.
-  - [ ] API сохранения/загрузки настроек (SQLite).
+- [ ] **Automated Data Tests:**
+  - [ ] Тесты миграции схем LanceDB.
+  - [ ] Тесты целостности данных при множественном доступе.
 
 ---
 
@@ -68,6 +72,10 @@
   - [ ] `DesktopView`: Сетка иконок.
   - [ ] `ModuleLoader`: Логика динамического импорта JS-модулей плагинов.
 
+- [ ] **End-to-End (E2E) Testing:**
+  - [ ] Playwright тесты: Загрузка страницы, открытие плагина, навигация.
+  - [ ] Проверка работы WebSockets в UI.
+
 - [ ] **System Plugin: File Provider:**
   - [ ] Сканирование локальной директории.
   - [ ] Watchdog: Отслеживание изменений файлов в реальном времени.
@@ -76,10 +84,6 @@
 - [ ] **System Plugin: LLM Provider:**
   - [ ] Интеграция с локальной моделью (Ollama/Transformers).
   - [ ] API для генерации эмбеддингов (для других плагинов).
-
-- [ ] **Slot System UI:**
-  - [ ] Реализация зон расширения: `context_menu`, `sidebar`.
-  - [ ] API регистрации UI-компонентов из плагинов.
 
 ---
 
@@ -96,9 +100,9 @@
   - [ ] Алгоритм перцептивного хэширования (для картинок).
   - [ ] Поиск дубликатов через Cross-Table Query.
 
-- [ ] **Resource Controller:**
-  - [ ] Лимитирование воркеров Taskiq (Resource Quotas).
-  - [ ] Мониторинг потребления ресурсов плагинами.
+- [ ] **Performance Testing:**
+  - [ ] Бенчмарки LanceDB при 100+ таблицах.
+  - [ ] Профилирование памяти Polars при больших Join-ах.
 
 ---
 
