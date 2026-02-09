@@ -1,4 +1,4 @@
-# Design Document: PC Center OS (v2.6)
+# Design Document: PC Center OS (v2.7)
 
 Этот документ описывает архитектуру **PC Center** — отказоустойчивой, модульной «Web OS» для локальной автоматизации, управления файлами и работы с LLM. Система спроектирована по принципу **Микроядра**, где ядро (Kernel) обеспечивает только базовую инфраструктуру, а вся функциональность реализуется через плагины.
 
@@ -147,8 +147,15 @@ class PluginDatabaseContext:
 *   **Capabilities:** `script.run`, `workflow.node_provider`, `workflow.engine`.
 *   **Features:**
     *   **Workflow Execution:** Выполняет графы, состоящие из узлов (Nodes), с передачей данных.
-    *   **Data Passing:** Поддержка передачи данных между узлами (Outputs -> Inputs).
-    *   **Visual Editor (UI):** Полноэкранный редактор графов (использует Svelte Flow или подобную библиотеку), интегрированный в Frontend.
+    *   **Visual Editor (UI):** Полноэкранный редактор графов.
+
+#### Пример: `plugins/system_dashboard` (Main Dashboard)
+Системный плагин, который отвечает за рендеринг главного экрана.
+*   **Capabilities:** `ui.dashboard`.
+*   **Role:** Контейнер для виджетов.
+*   **Features:**
+    *   **Widget Layout:** Grid-сетка для размещения виджетов (как в macOS Dashboard или Android).
+    *   **Slot Host:** Рендерит слот `dashboard_widget`, куда другие плагины (например, Погода, Загрузка CPU) встраивают свои компоненты.
 
 ### 5.2. UI Integration Points (Svelte Slots)
 
@@ -228,7 +235,7 @@ Frontend (Svelte) использует библиотеку генерации �
 Интерфейс строится как **Modular SPA**.
 
 ### 7.1. Режимы Просмотра
-*   **Desktop Mode:** Сетка иконок, виджеты состояния системы.
+*   **Desktop Mode:** Сетка иконок, виджеты состояния системы. Реализуется плагином `system_dashboard`.
 *   **Module View:** Полноэкранный режим активного плагина.
 
 ### 7.2. Динамическая Загрузка (Micro-Frontends)
