@@ -8,7 +8,7 @@ This file tracks the execution of each task defined in the `tasks/` directory.
 - [x] 03_plugin_system: PluginLoader, Manifest validation
 - [x] 04_event_orchestrator: AsyncEventBus, Tracing, WebSocket
 - [x] 05_api_gateway: FastAPI app, Middleware, Dynamic Router
-- [ ] 06_testing: Unit & Integration tests
+- [x] 06_testing: Unit & Integration tests
 
 ## Phase 2: Data & Search Engine
 - [ ] 01_lancedb_integration: LanceDB setup, Core Metadata Schema

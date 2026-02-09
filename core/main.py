@@ -7,31 +7,10 @@ from fastapi import WebSocket, WebSocketDisconnect
 from contextlib import asynccontextmanager
 from core.events import event_bus
 from core.plugin_manager import PluginLoader
+from core.middleware import SandboxMiddleware
 
 # Initialize logger
 logger = logging.getLogger(__name__)
-
-class SandboxMiddleware(BaseHTTPMiddleware):
-    """
-    Middleware to catch exceptions from plugins and enforce sandboxing (basic).
-    """
-    async def dispatch(self, request: Request, call_next: Callable) -> Response:
-        try:
-            response = await call_next(request)
-            return response
-        except Exception as e:
-            path = request.url.path
-            if "/api/plugins/" in path:
-                logger.error(f"Plugin error at {path}: {e}")
-                return JSONResponse(
-                    status_code=500,
-                    content={
-                        "error": "Plugin Execution Error",
-                        "detail": str(e),
-                        "path": path
-                    }
-                )
-            raise e
 
 # Initialize plugin loader globally
 plugin_loader = PluginLoader()
