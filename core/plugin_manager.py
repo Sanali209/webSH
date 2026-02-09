@@ -3,6 +3,8 @@ import os
 import importlib.util
 import logging
 from typing import List, Dict, Optional, Type
+from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field, ValidationError
 from core.sdk import PluginBase, PluginContext
 from core.database_manager import db_manager, PluginDatabaseContext
@@ -79,9 +81,10 @@ class PluginLoader:
 
         self.load_order = order
 
-    def load_plugin(self, plugin_id: str) -> Optional[PluginBase]:
+    def load_plugin(self, plugin_id: str, app: Optional[FastAPI] = None) -> Optional[PluginBase]:
         """
         Dynamically loads the plugin module and instantiates the plugin class.
+        Optionally mounts the plugin's UI directory if provided with an app instance.
         """
         if plugin_id not in self.manifests:
             logger.error(f"Plugin {plugin_id} not found in manifests.")
@@ -89,12 +92,21 @@ class PluginLoader:
 
         manifest = self.manifests[plugin_id]
         plugin_path = os.path.join(self.plugin_dir, plugin_id, manifest.entry_point)
+        plugin_root = os.path.join(self.plugin_dir, plugin_id)
 
         if not os.path.exists(plugin_path):
             logger.error(f"Entry point {plugin_path} not found for plugin {plugin_id}")
             return None
 
         try:
+            # Mount UI if app is provided and ui folder exists
+            if app:
+                ui_path = os.path.join(plugin_root, "ui")
+                if os.path.exists(ui_path):
+                    mount_path = f"/plugins/{plugin_id}/ui"
+                    app.mount(mount_path, StaticFiles(directory=ui_path), name=f"ui_{plugin_id}")
+                    logger.info(f"Mounted UI for plugin {plugin_id} at {mount_path}")
+
             # unique module name to avoid conflicts
             module_name = f"plugins.{plugin_id}.backend"
             spec = importlib.util.spec_from_file_location(module_name, plugin_path)
@@ -135,7 +147,7 @@ class PluginLoader:
             logger.error(f"Error loading plugin {plugin_id}: {e}")
             return None
 
-    def load_all_plugins(self) -> None:
+    def load_all_plugins(self, app: Optional[FastAPI] = None) -> None:
         """
         Scans, resolves dependencies, and loads all plugins in order.
         """
@@ -147,4 +159,4 @@ class PluginLoader:
             return
 
         for plugin_id in self.load_order:
-            self.load_plugin(plugin_id)
+            self.load_plugin(plugin_id, app)

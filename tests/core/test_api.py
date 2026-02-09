@@ -36,7 +36,8 @@ app.include_router(dummy_plugin.router, prefix="/api/plugins/dummy", tags=["dumm
 def test_read_root():
     response = client.get("/")
     assert response.status_code == 200
-    assert response.json() == {"message": "Welcome to PC Center"}
+    # Updated expectation based on frontend serving logic when 'dist' is missing
+    assert response.json() == {"message": "Frontend not found. Run 'npm run build' in your svelte project."}
 
 def test_plugin_router_reachability():
     """

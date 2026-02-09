@@ -1,6 +1,9 @@
 import logging
+import os
 from typing import Callable, Any
 from fastapi import FastAPI, Request, Response
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.responses import JSONResponse
 from fastapi import WebSocket, WebSocketDisconnect
@@ -21,8 +24,8 @@ async def lifespan(app: FastAPI):
     # Startup
     logger.info("PC Center starting up...")
 
-    # Load Plugins
-    plugin_loader.load_all_plugins()
+    # Load Plugins (passing app for UI mounting)
+    plugin_loader.load_all_plugins(app)
 
     # Run Migrations
     logger.info("Checking for plugin migrations...")
@@ -54,9 +57,9 @@ app = FastAPI(
 
 app.add_middleware(SandboxMiddleware)
 
-@app.get("/")
-async def root():
-    return {"message": "Welcome to PC Center"}
+@app.get("/api/status")
+async def status():
+    return {"status": "ok"}
 
 @app.websocket("/ws/events")
 async def websocket_endpoint(websocket: WebSocket):
@@ -81,3 +84,21 @@ async def list_plugins():
                 "status": "active" if m.id in plugin_loader.loaded_plugins else "inactive"
             })
     return manifests
+
+# Define handler globally for testing access
+async def serve_gui(full_path: str):
+    if full_path.startswith("api"):
+        return JSONResponse(status_code=404, content={"error": "Not Found"})
+
+    return FileResponse("dist/index.html")
+
+# Mount Frontend Static Files
+if os.path.exists("dist"):
+    app.mount("/assets", StaticFiles(directory="dist/assets"), name="assets")
+
+    # Catch-all for SPA routing
+    app.add_api_route("/{full_path:path}", serve_gui, methods=["GET"])
+else:
+    @app.get("/")
+    async def welcome():
+        return {"message": "Frontend not found. Run 'npm run build' in your svelte project."}

@@ -83,3 +83,6 @@ class MigrationManager:
                     logger.error(f"Migration failed for {plugin_id}: {e}")
             else:
                 logger.debug(f"Plugin {plugin_id} is up to date (v{current_version})")
+
+# Global instance
+migration_manager = MigrationManager()
