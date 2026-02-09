@@ -1,4 +1,4 @@
-# Roadmap: PC Center OS (v2.1)
+# Roadmap: PC Center OS (v2.3)
 
 Этот документ описывает план разработки **PC Center** по стадиям, от базового ядра до полноценной экосистемы плагинов.
 
@@ -64,26 +64,25 @@
 
 ---
 
-## Phase 3: Essential System Plugins & Frontend Loader (Первые Модули)
-**Цель:** Оживить систему, добавив базовые функции работы с файлами и интерфейс.
+## Phase 3: System Plugins Implementation (Системные Модули)
+**Цель:** Оживить систему, реализовав базовые возможности (FS, LLM) как системные плагины.
 
-- [ ] **Frontend Core (Svelte):**
-  - [ ] Настройка Vite + Svelte + Skeleton UI.
-  - [ ] `DesktopView`: Сетка иконок.
-  - [ ] `ModuleLoader`: Логика динамического импорта JS-модулей плагинов.
+- [ ] **System Plugin: File System (fs_provider):**
+  - [ ] **Backend:** Реализация сканирования диска и Watchdog.
+  - [ ] **LanceDB Sync:** Логика обновления `Core Metadata Table` при изменениях ФС.
+  - [ ] **Frontend (File Explorer):** Создание компонента `FileExplorer.svelte` (аналог Windows Explorer).
+  - [ ] **Context Menu:** Реализация слотов контекстного меню для других плагинов.
+
+- [ ] **System Plugin: LLM Provider (llm_provider):**
+  - [ ] Интеграция с локальной моделью (Ollama/Transformers).
+  - [ ] Экспорт Capability `llm.embed` для использования другими плагинами.
+
+- [ ] **Frontend Core Integration:**
+  - [ ] `ModuleLoader`: Подключение системных плагинов в интерфейс по умолчанию.
+  - [ ] `SlotManager`: Отрисовка виджетов из плагинов в UI.
 
 - [ ] **End-to-End (E2E) Testing:**
-  - [ ] Playwright тесты: Загрузка страницы, открытие плагина, навигация.
-  - [ ] Проверка работы WebSockets в UI.
-
-- [ ] **System Plugin: File Provider:**
-  - [ ] Сканирование локальной директории.
-  - [ ] Watchdog: Отслеживание изменений файлов в реальном времени.
-  - [ ] Запись метаданных в `Core Metadata Table`.
-
-- [ ] **System Plugin: LLM Provider:**
-  - [ ] Интеграция с локальной моделью (Ollama/Transformers).
-  - [ ] API для генерации эмбеддингов (для других плагинов).
+  - [ ] Playwright тесты: Сценарий "Открыть File Explorer -> Кликнуть на файл -> Проверить контекстное меню".
 
 ---
 
@@ -93,7 +92,7 @@
 - [ ] **Plugin: Web Parser:**
   - [ ] Своя таблица `plugin_parser_vectors` (спутник).
   - [ ] Taskiq Worker: Скачивание и парсинг страниц.
-  - [ ] Генерация векторов через LLM Provider.
+  - [ ] Генерация векторов через Capability `llm_provider`.
 
 - [ ] **Plugin: Deduplicator:**
   - [ ] Своя таблица `plugin_dedup_hashes`.

@@ -1,4 +1,4 @@
-# Design Document: PC Center OS (v2.2)
+# Design Document: PC Center OS (v2.3)
 
 Этот документ описывает архитектуру **PC Center** — отказоустойчивой, модульной «Web OS» для локальной автоматизации, управления файлами и работы с LLM. Система спроектирована по принципу **Микроядра**, где ядро (Kernel) обеспечивает только базовую инфраструктуру, а вся функциональность реализуется через плагины.
 
@@ -119,23 +119,27 @@ class PluginDatabaseContext:
 
 ---
 
-## 5. Точки Интеграции (Integration Points)
+## 5. Точки Интеграции и Системные Плагины
 
-Система предоставляет два уровня интеграции: **Backend (Python)** и **UI (Svelte)**.
+Система предоставляет два уровня интеграции: **Backend (Python)** и **UI (Svelte)**, а также концепцию **Системных Плагинов**.
 
-### 5.1. Backend Integrations (Logic)
+### 5.1. Системные Плагины (Capability Providers)
 
-1.  **Capability Registry (Реестр Возможностей):**
-    *   Плагин объявляет, что он умеет делать, через манифест.
-    *   Пример: `opener:text/csv` (плагин умеет открывать CSV), `searcher:semantic` (предоставляет векторный поиск).
-    *   Ядро использует это для маршрутизации (например, при клике на файл).
+Это плагины, которые предоставляют базовые возможности для работы ОС. Они используют тот же механизм плагинов, но могут иметь привилегированный доступ к `Core Table`.
 
-2.  **Event Hooks (Шина Событий):**
-    *   Плагины подписываются на системные события: `file.created`, `file.updated`, `system.idle`.
-    *   Пример: "Image Analyzer" подписывается на `file.created` с MIME-типом `image/*`, чтобы сгенерировать вектор.
+#### Пример: `plugins/system_fs` (File System Provider)
+Этот плагин — аналог "Windows Explorer".
+*   **Capabilities:** `fs.scan`, `fs.watch`, `opener:directory`.
+*   **Backend:**
+    *   Сканирует диск (`os.walk`) и обновляет `core_metadata` в LanceDB.
+    *   Следит за изменениями через `watchdog` (создание/удаление файлов).
+*   **Frontend UI:**
+    *   Реализует полноценный файловый менеджер (Grid/List View, Breadcrumbs).
+    *   Предоставляет слоты `context_menu` для других плагинов.
 
-3.  **Data Injection (Инъекция Данных):**
-    *   Плагины могут добавлять свои векторы в общий поисковый индекс через `SearchOrchestrator`. Это позволяет пользователю искать по данным, сгенерированным разными плагинами, в одном запросе.
+#### Пример: `plugins/system_llm` (LLM Provider)
+*   **Capabilities:** `llm.embed`, `llm.generate`.
+*   **Backend:** Обертка над `ollama` или `transformers` для генерации векторов.
 
 ### 5.2. UI Integration Points (Svelte Slots)
 
@@ -191,7 +195,7 @@ class PluginDatabaseContext:
   "version": "1.2.0",
   "core_sdk_version": "^2.1.0",
   "permissions": ["network", "filesystem.read"],
-  "dependencies": ["file_provider"],
+  "dependencies": ["system_fs"],
   "capabilities": ["searcher:web"],
   "ui_extensions": [
     { "slot": "system_tray", "component": "StatusIcon.svelte" }
