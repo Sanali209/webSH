@@ -29,9 +29,19 @@
         - Parses a JSON graph of nodes and edges.
         - topological sort of the graph.
         - Executes nodes sequentially (or parallel where possible) using `Taskiq`.
-        - Passes outputs of one node to inputs of the next.
+        - Passes outputs of one node to inputs of the next (Data Flow implementation).
+        - Handles execution state and error propagation.
 
-5.  **API Endpoints**
+5.  **Implement Visual Editor (Frontend)**
+    - Create `plugins/system_script_engine/ui/index.js` exporting the UI.
+    - Implement a Visual Node Editor component (e.g., using Svelte Flow).
+    - Features:
+        - Drag-and-drop nodes from palette.
+        - Connect nodes to define data flow.
+        - "Run" button to trigger execution via API.
+        - Display execution status/results.
+
+6.  **API Endpoints**
     - `GET /nodes`: Returns list of available workflow nodes (from all plugins).
     - `POST /run`: Accepts a workflow graph and executes it.
 
@@ -39,4 +49,5 @@
 
 -   **Unit Tests (`tests/plugins/test_script_engine.py`):**
     -   **Registry:** Define a dummy node with decorator, verify it appears in the scanner results.
-    -   **Execution:** Create a simple graph (Node A -> Node B), execute it, and verify data flow.
+    -   **Execution:** Create a simple graph (Node A -> Node B), execute it, and verify data flow from A to B.
+    -   **Control:** Verify execution stops on error.
