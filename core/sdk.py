@@ -73,11 +73,10 @@ class PluginContext:
     def background_task(self, func: Callable[..., Any]) -> Callable[..., Any]:
         """
         Decorator/Helper to mark a function as a background task.
-        For now, this is a placeholder. In Phase 1 Task 4/5, this will integrate with Taskiq.
+        Wraps the function with the Taskiq broker task decorator.
         """
-        # In a real implementation, this might register the task with Taskiq
-        # or return a wrapped taskiq task.
-        return func
+        from core.broker import broker
+        return broker.task(func)
 
 class PluginBase(abc.ABC):
     """

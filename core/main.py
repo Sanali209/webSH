@@ -12,6 +12,7 @@ from core.events import event_bus
 from core.plugin_manager import PluginLoader
 from core.middleware import SandboxMiddleware
 from core.migrations import migration_manager
+from core.broker import broker
 
 # Initialize logger
 logger = logging.getLogger(__name__)
@@ -23,6 +24,10 @@ plugin_loader = PluginLoader()
 async def lifespan(app: FastAPI):
     # Startup
     logger.info("PC Center starting up...")
+
+    # Start Taskiq Broker
+    if not broker.is_worker_process:
+        await broker.startup()
 
     # Load Plugins (passing app for UI mounting)
     plugin_loader.load_all_plugins(app)
@@ -44,6 +49,11 @@ async def lifespan(app: FastAPI):
     yield
     # Shutdown
     logger.info("PC Center shutting down...")
+
+    # Shutdown Taskiq Broker
+    if not broker.is_worker_process:
+        await broker.shutdown()
+
     # Trigger on_deactivate for all plugins (optional cleanup)
     for plugin in plugin_loader.loaded_plugins.values():
         plugin.on_deactivate()
