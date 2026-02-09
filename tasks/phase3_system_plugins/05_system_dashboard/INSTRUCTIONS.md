@@ -30,3 +30,6 @@
 -   **Unit Tests (Frontend):**
     -   **Rendering:** Verify that the dashboard renders and iterates over registered widgets.
     -   **Empty State:** Verify behavior when no widgets are present.
+-   **Playwright (E2E):**
+    -   **Widget Presence:** Verify that widgets registered by other plugins appear on the dashboard.
+    -   **Layout:** Verify that the grid layout renders correctly.

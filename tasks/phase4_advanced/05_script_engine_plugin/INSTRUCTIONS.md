@@ -51,3 +51,6 @@
     -   **Registry:** Define a dummy node with decorator, verify it appears in the scanner results.
     -   **Execution:** Create a simple graph (Node A -> Node B), execute it, and verify data flow from A to B.
     -   **Control:** Verify execution stops on error.
+-   **Playwright (E2E):**
+    -   **Visual Editor:** Verify the editor loads and allows node manipulation.
+    -   **Workflow Creation:** Verify that a user can drag nodes, connect them, and trigger a run.

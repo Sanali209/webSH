@@ -26,3 +26,6 @@
 -   **Manual/E2E:**
     -   **Theme:** Toggle theme and verify styles change. Refresh page and verify theme persists.
     -   **Skeleton:** Throttling network speed to verify skeletons appear.
+-   **Playwright (E2E):**
+    -   **Theme Switching:** Use Playwright to toggle the theme and verify CSS property changes (e.g., background color).
+    -   **Settings:** Verify validation feedback appears for invalid inputs in the settings form.
