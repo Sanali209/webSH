@@ -1,43 +1,38 @@
-# Dockerfile for PC Center on Koyeb
-# Multi-stage build for frontend and backend
-
-# --- Stage 1: Frontend Build ---
-FROM node:18-alpine AS frontend-builder
-WORKDIR /app/web
-
-# Copy package files and install dependencies
-COPY web/package.json web/package-lock.json* ./
-RUN npm ci
-
-# Copy frontend source
-COPY web/ ./
-# Build the Svelte app (assumes output to /app/web/dist or similar)
-RUN npm run build
-
-# --- Stage 2: Backend Runtime ---
 FROM python:3.11-slim
-WORKDIR /app
 
-# Install system dependencies for LanceDB, Polars, and ZeroMQ
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    build-essential \
-    libzmq3-dev \
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PIP_NO_CACHE_DIR=off \
+    PIP_DISABLE_PIP_VERSION_CHECK=on \
+    PIP_DEFAULT_TIMEOUT=100 \
+    POETRY_VERSION=1.7.1 \
+    POETRY_HOME="/opt/poetry" \
+    POETRY_VIRTUALENVS_CREATE=false \
+    POETRY_NO_INTERACTION=1
+
+# Install system dependencies
+RUN apt-get update \
+    && apt-get install --no-install-recommends -y \
+        curl \
+        build-essential \
     && rm -rf /var/lib/apt/lists/*
 
-# Install Python dependencies
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+# Install Poetry
+RUN curl -sSL https://install.python-poetry.org | python3 -
+ENV PATH="$POETRY_HOME/bin:$PATH"
 
-# Copy backend code
+WORKDIR /app
+
+# Copy dependency definition
+COPY pyproject.toml poetry.lock ./
+
+# Install dependencies
+RUN poetry install --no-root
+
+# Copy application code
 COPY . .
 
-# Copy built frontend assets from Stage 1 to backend static folder
-# Adjust destination path based on where FastAPI serves static files (e.g., /app/static)
-COPY --from=frontend-builder /app/web/dist /app/static
+# Install the application
+RUN poetry install
 
-# Expose port (Koyeb usually expects 8000 or defined via PORT env var)
-ENV PORT=8000
-EXPOSE 8000
-
-# Run the application (using uvicorn)
-CMD ["sh", "-c", "uvicorn main:app --host 0.0.0.0 --port ${PORT}"]
+CMD ["uvicorn", "core.main:app", "--host", "0.0.0.0", "--port", "8000"]
