@@ -1,4 +1,4 @@
-# Design Document: PC Center OS (v2.4)
+# Design Document: PC Center OS (v2.5)
 
 Этот документ описывает архитектуру **PC Center** — отказоустойчивой, модульной «Web OS» для локальной автоматизации, управления файлами и работы с LLM. Система спроектирована по принципу **Микроядра**, где ядро (Kernel) обеспечивает только базовую инфраструктуру, а вся функциональность реализуется через плагины.
 
@@ -142,6 +142,14 @@ class PluginDatabaseContext:
 *   **Capabilities:** `llm.embed`, `llm.generate`.
 *   **Backend:** Обертка над `ollama` или `transformers` для генерации векторов.
 
+#### Пример: `plugins/system_script_engine` (Scripting Engine)
+Новый системный плагин для поддержки автоматизации через Python-скрипты.
+*   **Capabilities:** `script.run`, `workflow.node_provider`.
+*   **Role:** Позволяет пользователям писать кастомные скрипты автоматизации, которые имеют доступ к Core SDK.
+*   **Features:**
+    *   Изолированное выполнение (насколько это возможно в рамках доверенной модели).
+    *   API для регистрации узлов (nodes) в визуальном редакторе Workflow.
+
 ### 5.2. UI Integration Points (Svelte Slots)
 
 Ядро предоставляет систему **Слотов** (Slots) — предопределенных мест в интерфейсе, куда плагины могут встраивать свои компоненты.
@@ -183,6 +191,7 @@ class PluginDatabaseContext:
 ├── models.py          # PyArrow схемы таблиц
 ├── router.py          # FastAPI эндпоинты
 ├── backend.py         # Основная логика и хуки
+├── workflow.py        # Узлы для системы автоматизации (если есть)
 └── ui/                # Svelte компоненты (динамически подгружаемые)
     └── index.js       # Entry point для UI
 ```
@@ -192,6 +201,7 @@ class PluginDatabaseContext:
 ```json
 {
   "id": "web_parser",
+  "type": "user",
   "name": "Web Parser Pro",
   "version": "1.2.0",
   "core_sdk_version": "^2.1.0",
@@ -200,7 +210,8 @@ class PluginDatabaseContext:
   "capabilities": ["searcher:web"],
   "ui_extensions": [
     { "slot": "system_tray", "component": "StatusIcon.svelte" }
-  ]
+  ],
+  "workflow_nodes": ["parse_url", "extract_images"]
 }
 ```
 
@@ -226,7 +237,39 @@ Svelte-приложение ядра загружает их по требова
 
 ---
 
-## 8. Безопасность и Стабильность
+## 8. Workflow Engine & Scripting (Новое)
+
+Интеграция визуального программирования (n8n-style) и скриптинга.
+
+### 8.1. Регистрация Узлов (Nodes)
+Плагины могут экспортировать функциональность как "узлы" для Workflow Engine.
+Это делается через декоратор `@workflow_node` в файле `workflow.py`.
+
+```python
+# plugins/web_parser/workflow.py
+from core.workflow import workflow_node, NodeInput, NodeOutput
+
+@workflow_node(
+    id="parse_page",
+    name="Парсить HTML",
+    inputs=[NodeInput(name="url", type="string")],
+    outputs=[NodeOutput(name="text", type="string"), NodeOutput(name="images", type="list")]
+)
+async def execute_parse(ctx, inputs):
+    # Этот код будет запущен Taskiq воркером
+    result = await parse_logic(inputs["url"])
+    return {"text": result.text, "images": result.imgs}
+```
+
+### 8.2. Scripting Engine Plugin
+Системный плагин, который отвечает за выполнение этих узлов и пользовательских скриптов.
+*   Сканирует плагины на наличие `workflow.py`.
+*   Регистрирует доступные узлы в реестре.
+*   Предоставляет API для запуска графов (Workflows).
+
+---
+
+## 9. Безопасность и Стабильность
 
 1.  **Trust Model:** Плагины считаются доверенными. Изоляция процессов (Docker/Wasm) отсутствует для упрощения архитектуры и производительности.
 2.  **Permission Scoping:** Плагин декларирует права (`network`, `filesystem.write`) в манифесте для информирования пользователя.

@@ -19,6 +19,10 @@
     - Load 1000 items.
     - Verify scrolling smoothness (FPS) and DOM node count (Virtual Scrolling).
 
+4.  **Script Engine Performance**
+    - Create a workflow with 50 nodes.
+    - Measure execution overhead (graph traversal time vs actual node execution time).
+
 ## Testing
 
 -   **Run Benchmarks:** Execute the performance scripts and record the results. Ensure they meet defined thresholds (e.g., search < 200ms).
