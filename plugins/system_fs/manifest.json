@@ -1,0 +1,11 @@
+{
+  "id": "system_fs",
+  "name": "File System Provider",
+  "version": "0.1.0",
+  "description": "Provides file system access, scanning, and monitoring capabilities.",
+  "author": "System",
+  "entry_point": "backend.py",
+  "capabilities": ["fs.scan", "fs.watch", "opener:directory"],
+  "permissions": ["filesystem.read"],
+  "dependencies": []
+}
