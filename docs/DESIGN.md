@@ -1,4 +1,4 @@
-# Design Document: PC Center OS (v2.3)
+# Design Document: PC Center OS (v2.7)
 
 Этот документ описывает архитектуру **PC Center** — отказоустойчивой, модульной «Web OS» для локальной автоматизации, управления файлами и работы с LLM. Система спроектирована по принципу **Микроядра**, где ядро (Kernel) обеспечивает только базовую инфраструктуру, а вся функциональность реализуется через плагины.
 
@@ -22,12 +22,12 @@
 
 | Компонент | Технология | Роль |
 | :--- | :--- | :--- |
-| **Backend** | **Python 3.11+, FastAPI** | API Gateway, Orchestration. |
+| **Backend** | **Python 3.11+, FastAPI** | API Gateway, Orchestration, Static File Serving. |
 | **Plugin System** | **Pluggy** | Механизм обнаружения и загрузки модулей. |
 | **Data Storage** | **LanceDB** | Гибридное хранилище (Векторы + Метаданные). |
 | **Data Processing** | **Polars + Apache Arrow** | Молниеносные Join-ы и аналитика в памяти. |
 | **Background Tasks** | **Taskiq (ZeroMQ)** | Распределенная очередь задач. |
-| **Frontend** | **Svelte (Vite)** | Реактивный UI, SPA. |
+| **Frontend** | **Svelte (Vite)** | Реактивный UI, SPA. Скомпилирован в static assets. |
 | **Styling** | **Skeleton UI + Tailwind** | Дизайн-система. |
 | **Notifications** | **Desktop-notifier** | Нативные пуш-уведомления ОС. |
 | **Configs** | **SQLite** | Хранение системных настроек и реестра плагинов. |
@@ -41,14 +41,15 @@
 
 ### 3.1. Ключевые Сервисы
 
-1.  **Module Federation Loader:**
-    *   Динамически импортирует Python-код плагинов.
-    *   Отдает JS-компоненты плагинов как статические ES-модули для фронтенда.
-    *   Строит **Граф Зависимостей** (Dependency Graph) для корректного порядка загрузки.
-
-2.  **API Gateway & Sandbox Middleware:**
-    *   Автоматически монтирует роуты плагинов (`/api/v1/plugins/{id}/*`).
+1.  **Frontend Serving & API Gateway:**
+    *   **Single Port (8000):** FastAPI обслуживает как API (`/api/...`), так и статические файлы фронтенда (`/`).
+    *   **SPA Support:** Все запросы, не относящиеся к API, перенаправляются на `index.html`.
+    *   **Plugin UI Mounting:** Статические файлы плагинов (папка `ui/`) автоматически монтируются по пути `/plugins/{id}/ui`, позволяя фронтенду динамически подгружать модули.
     *   **Error Boundaries:** Перехватывает исключения в коде плагинов, предотвращая падение сервера (500 Internal Server Error -> JSON "Plugin Unavailable").
+
+2.  **Module Federation Loader:**
+    *   Динамически импортирует Python-код плагинов.
+    *   Строит **Граф Зависимостей** (Dependency Graph) для корректного порядка загрузки.
 
 3.  **Event Orchestrator:**
     *   Шина событий (Pub/Sub) на базе `asyncio`.
@@ -71,7 +72,7 @@
 
 Ядро управляет состояниями через хуки:
 
-*   `ON_LOAD`: Загрузка манифеста, проверка зависимостей, миграция схемы БД.
+*   `ON_LOAD`: Загрузка манифеста, проверка зависимостей, миграция схемы БД, монтирование UI ресурсов.
 *   `ON_ACTIVATE`: Запуск фоновых процессов, подписка на события.
 *   `ON_DEACTIVATE`: Приостановка работы, сохранение состояния.
 *   `ON_UNLOAD`: Полная выгрузка, очистка ресурсов.
@@ -141,6 +142,21 @@ class PluginDatabaseContext:
 *   **Capabilities:** `llm.embed`, `llm.generate`.
 *   **Backend:** Обертка над `ollama` или `transformers` для генерации векторов.
 
+#### Пример: `plugins/system_script_engine` (Scripting & Workflow Engine)
+Новый системный плагин для поддержки автоматизации через Python-скрипты и визуальные графы.
+*   **Capabilities:** `script.run`, `workflow.node_provider`, `workflow.engine`.
+*   **Features:**
+    *   **Workflow Execution:** Выполняет графы, состоящие из узлов (Nodes), с передачей данных.
+    *   **Visual Editor (UI):** Полноэкранный редактор графов.
+
+#### Пример: `plugins/system_dashboard` (Main Dashboard)
+Системный плагин, который отвечает за рендеринг главного экрана.
+*   **Capabilities:** `ui.dashboard`.
+*   **Role:** Контейнер для виджетов.
+*   **Features:**
+    *   **Widget Layout:** Grid-сетка для размещения виджетов (как в macOS Dashboard или Android).
+    *   **Slot Host:** Рендерит слот `dashboard_widget`, куда другие плагины (например, Погода, Загрузка CPU) встраивают свои компоненты.
+
 ### 5.2. UI Integration Points (Svelte Slots)
 
 Ядро предоставляет систему **Слотов** (Slots) — предопределенных мест в интерфейсе, куда плагины могут встраивать свои компоненты.
@@ -182,8 +198,9 @@ class PluginDatabaseContext:
 ├── models.py          # PyArrow схемы таблиц
 ├── router.py          # FastAPI эндпоинты
 ├── backend.py         # Основная логика и хуки
-└── frontend/          # Svelte компоненты (динамически подгружаемые)
-    └── index.js
+├── workflow.py        # Узлы для системы автоматизации (если есть)
+└── ui/                # Svelte компоненты (динамически подгружаемые)
+    └── index.js       # Entry point для UI
 ```
 
 ### 6.3. Манифест (`manifest.json`)
@@ -191,6 +208,7 @@ class PluginDatabaseContext:
 ```json
 {
   "id": "web_parser",
+  "type": "user",
   "name": "Web Parser Pro",
   "version": "1.2.0",
   "core_sdk_version": "^2.1.0",
@@ -199,7 +217,8 @@ class PluginDatabaseContext:
   "capabilities": ["searcher:web"],
   "ui_extensions": [
     { "slot": "system_tray", "component": "StatusIcon.svelte" }
-  ]
+  ],
+  "workflow_nodes": ["parse_url", "extract_images"]
 }
 ```
 
@@ -216,15 +235,59 @@ Frontend (Svelte) использует библиотеку генерации �
 Интерфейс строится как **Modular SPA**.
 
 ### 7.1. Режимы Просмотра
-*   **Desktop Mode:** Сетка иконок, виджеты состояния системы.
+*   **Desktop Mode:** Сетка иконок, виджеты состояния системы. Реализуется плагином `system_dashboard`.
 *   **Module View:** Полноэкранный режим активного плагина.
 
 ### 7.2. Динамическая Загрузка (Micro-Frontends)
-Плагины компилируются в отдельные JS-модули. Svelte-приложение ядра загружает их по требованию через `import()`. Это позволяет обновлять плагины без пересборки всего фронтенда.
+Плагины компилируются в отдельные JS-модули и помещаются в папку `ui/`.
+Svelte-приложение ядра загружает их по требованию через `import('/plugins/{id}/ui/index.js')`. Это позволяет обновлять плагины без пересборки всего фронтенда.
 
 ---
 
-## 8. Безопасность и Стабильность
+## 8. Workflow Engine & Scripting (Новое)
+
+Интеграция визуального программирования (n8n-style) и скриптинга.
+
+### 8.1. Регистрация Узлов (Nodes)
+Плагины могут экспортировать функциональность как "узлы" для Workflow Engine.
+Это делается через декоратор `@workflow_node` в файле `workflow.py`.
+
+```python
+# plugins/web_parser/workflow.py
+from core.workflow import workflow_node, NodeInput, NodeOutput
+
+@workflow_node(
+    id="parse_page",
+    name="Парсить HTML",
+    inputs=[NodeInput(name="url", type="string")],
+    outputs=[NodeOutput(name="text", type="string"), NodeOutput(name="images", type="list")]
+)
+async def execute_parse(ctx, inputs):
+    # Этот код будет запущен Taskiq воркером
+    result = await parse_logic(inputs["url"])
+    return {"text": result.text, "images": result.imgs}
+```
+
+### 8.2. Scripting Engine Plugin
+Системный плагин `system_script_engine`, который отвечает за выполнение узлов и графов.
+
+#### Backend
+*   **Registry:** Сканирует плагины на наличие `workflow.py` и регистрирует доступные узлы.
+*   **Execution Engine:**
+    *   Принимает JSON-граф.
+    *   Строит топологию исполнения.
+    *   Вызывает функции узлов, передавая `inputs` и получая `outputs`.
+    *   Обеспечивает передачу данных (Data Flow) между узлами.
+    *   Обрабатывает ошибки и состояния выполнения.
+
+#### Frontend (Visual Editor)
+*   **UI Component:** Предоставляет визуальный редактор (Visual Node Editor) для создания и редактирования рабочих процессов.
+*   **Node Palette:** Отображает список доступных узлов (собранных бэкендом).
+*   **Execution Control:** Кнопки запуска/остановки, отображение статуса выполнения и логов.
+
+---
+
+## 9. Безопасность и Стабильность
 
 1.  **Trust Model:** Плагины считаются доверенными. Изоляция процессов (Docker/Wasm) отсутствует для упрощения архитектуры и производительности.
 2.  **Permission Scoping:** Плагин декларирует права (`network`, `filesystem.write`) в манифесте для информирования пользователя.
