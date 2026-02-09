@@ -30,3 +30,24 @@
     -   Create a concrete implementation of `PluginBase` and verify it can be instantiated.
     -   Test `PluginContext` methods to ensure they return the expected objects (mocking DB and Taskiq).
     -   Test `PluginSettings` with valid and invalid data to ensure Pydantic validation works.
+
+## Walkthrough / Summary
+
+### Execution Steps
+1.  **PluginSettings Implementation:**
+    -   Defined `PluginSettings` inheriting from Pydantic's `BaseModel`.
+    -   Added a default `enabled` field.
+2.  **PluginContext Implementation:**
+    -   Implemented `PluginContext` to encapsulate plugin-specific capabilities.
+    -   Added `get_my_table()` method to return a scoped table name (e.g., `plugin_{id}_data`).
+    -   Added `background_task` decorator as a placeholder for future Taskiq integration.
+3.  **PluginBase Implementation:**
+    -   Defined `PluginBase` as an abstract base class (`abc.ABC`).
+    -   Defined abstract methods `on_load`, `on_activate`, and `on_deactivate` to enforce plugin lifecycle compliance.
+4.  **Testing:**
+    -   Created `tests/core/test_sdk.py`.
+    -   Verified `PluginBase` cannot be instantiated directly.
+    -   Verified concrete implementations work as expected.
+    -   Verified `PluginContext` returns correctly scoped table names.
+    -   Verified `PluginSettings` validation logic.
+    -   Ran tests successfully with `poetry run pytest`.
