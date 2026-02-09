@@ -6,7 +6,7 @@ This file tracks the execution of each task defined in the `tasks/` directory.
 - [x] 01_project_setup: Initialize repo, pyproject.toml, docker-compose
 - [x] 02_core_sdk: PluginBase, PluginContext, PluginSettings
 - [x] 03_plugin_system: PluginLoader, Manifest validation
-- [ ] 04_event_orchestrator: AsyncEventBus, Tracing, WebSocket
+- [x] 04_event_orchestrator: AsyncEventBus, Tracing, WebSocket
 - [ ] 05_api_gateway: FastAPI app, Middleware, Dynamic Router
 - [ ] 06_testing: Unit & Integration tests
 

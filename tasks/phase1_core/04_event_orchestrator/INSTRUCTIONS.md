@@ -25,3 +25,24 @@
     -   **Pub/Sub:** Subscribe a mock callback to an event, publish the event, and verify the callback is invoked with the correct data.
     -   **Correlation ID:** Verify that a published event generates a `correlation_id` and that it is received by the subscriber.
     -   **WebSocket:** Use `TestClient` or a WebSocket client to connect to `/ws/events`, trigger an event, and verify the message is received over the socket.
+
+## Walkthrough / Summary
+
+### Execution Steps
+1.  **AsyncEventBus Implementation:**
+    -   Implemented `AsyncEventBus` in `core/events.py`.
+    -   Used `asyncio` to manage asynchronous subscribers.
+    -   Implemented `publish` method to dispatch events to local subscribers and broadcast to WebSockets.
+2.  **Correlation ID:**
+    -   Added logic to generate a UUID `correlation_id` for every published event if not provided.
+    -   Propagated this ID to all subscribers and WebSocket messages for tracing.
+3.  **WebSocket Integration:**
+    -   Updated `core/main.py` to include a WebSocket endpoint at `/ws/events`.
+    -   Implemented connection management (`connect_websocket`, `disconnect_websocket`) in the event bus.
+    -   Configured the endpoint to keep the connection alive.
+4.  **Testing:**
+    -   Created `tests/core/test_events.py`.
+    -   Verified pub/sub mechanics with multiple subscribers.
+    -   Verified automatic correlation ID generation.
+    -   Verified that events are correctly formatted and sent to connected WebSocket clients (using `AsyncMock`).
+    -   All tests passed.
