@@ -20,7 +20,7 @@ This file tracks the execution of each task defined in the `tasks/` directory.
 
 ## Phase 3: System Plugins Implementation
 - [x] 01_system_fs: File System Plugin (watchdog, backend)
-- [ ] 02_system_llm: LLM Provider Plugin (Embeddings)
+- [x] 02_system_llm: LLM Provider Plugin (Embeddings)
 - [x] 03_frontend_core_integration: ModuleLoader, SlotManager
 - [ ] 04_e2e_tests: Playwright setup & scenario
 - [ ] 05_system_dashboard: Dashboard UI & Widget Host
