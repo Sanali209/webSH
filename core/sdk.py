@@ -58,3 +58,11 @@ class PluginBase(abc.ABC):
         Called when the plugin is deactivated by the user.
         """
         pass
+
+    def migrate(self, old_version: str, new_version: str) -> None:
+        """
+        Called when the plugin version has changed.
+        Implement schema migration logic here.
+        Default implementation does nothing.
+        """
+        pass

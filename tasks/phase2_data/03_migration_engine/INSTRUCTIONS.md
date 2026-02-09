@@ -26,3 +26,24 @@
     -   **Migration Trigger:** Simulate a scenario where the manifest version is higher than the DB version. Verify `migrate` is called.
     -   **Idempotency:** Verify that if versions match, `migrate` is not called.
     -   **Version Update:** Verify that the DB version is updated after a successful migration.
+
+## Walkthrough / Summary
+
+### Execution Steps
+1.  **PluginBase Update:**
+    -   Added `migrate(self, old_version: str, new_version: str)` method to `PluginBase` in `core/sdk.py`.
+2.  **MigrationManager Implementation:**
+    -   Created `core/migrations.py`.
+    -   Implemented SQLite-based version tracking (`plugins.db`).
+    -   Implemented `run_migrations(loader)`:
+        -   Iterates through loaded plugins.
+        -   Compares manifest version with stored DB version.
+        -   Updates DB for fresh installs.
+        -   Calls `plugin.migrate()` and updates DB for version upgrades.
+3.  **Testing:**
+    -   Created `tests/data/test_migrations.py`.
+    -   Verified DB initialization.
+    -   Verified version storage/retrieval.
+    -   Verified fresh install logic (no migration hook, just DB update).
+    -   Verified update logic (migration hook called, DB updated).
+    -   Verified idempotency (no hook called if versions match).

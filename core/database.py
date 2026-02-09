@@ -43,9 +43,22 @@ class DatabaseClient:
 
         table_name = "core_metadata"
 
-        # Check if table exists (using list_tables if available, fallback for compatibility)
-        # Note: table_names() is deprecated in newer versions
-        if table_name in self.connection.table_names():
+        # table_names() is deprecated, use list_tables()
+        # Since this client might be used with older versions, we check availability if needed,
+        # but for this environment we aim for compatibility with current docs.
+        # However, lancedb-python API has evolved. Checking generic list behavior.
+
+        try:
+            # Try newer API first if available on connection object
+            if hasattr(self.connection, "list_tables"):
+                existing_tables = self.connection.list_tables()
+            else:
+                # Fallback to deprecated
+                existing_tables = self.connection.table_names()
+        except AttributeError:
+             existing_tables = self.connection.table_names()
+
+        if table_name in existing_tables:
              return self.connection.open_table(table_name)
         else:
             logger.info(f"Creating table '{table_name}'")

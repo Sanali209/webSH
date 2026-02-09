@@ -8,6 +8,7 @@ from contextlib import asynccontextmanager
 from core.events import event_bus
 from core.plugin_manager import PluginLoader
 from core.middleware import SandboxMiddleware
+from core.migrations import migration_manager
 
 # Initialize logger
 logger = logging.getLogger(__name__)
@@ -22,6 +23,10 @@ async def lifespan(app: FastAPI):
 
     # Load Plugins
     plugin_loader.load_all_plugins()
+
+    # Run Migrations
+    logger.info("Checking for plugin migrations...")
+    migration_manager.run_migrations(plugin_loader)
 
     # Dynamic Router Mounting
     for plugin_id, plugin_instance in plugin_loader.loaded_plugins.items():
