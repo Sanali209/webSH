@@ -5,8 +5,7 @@
  * that will be loaded dynamically by the ModuleLoader.
  */
 
-// Note: In a real implementation, these would be actual Svelte components
-// For now, this serves as a template/example
+import FileSystemWidget from './FileSystemWidget.svelte';
 
 export default {
   // Plugin metadata
@@ -15,6 +14,15 @@ export default {
   
   // Slot registrations - define which components to render in which slots
   slots: {
+    // Dashboard widget
+    dashboard_widget: {
+      component: FileSystemWidget,
+      props: {
+        title: 'File System',
+        size: 'medium'
+      }
+    },
+    
     // Example: Add a file system icon to the system tray
     system_tray: {
       component: null, // Would be a Svelte component
@@ -36,3 +44,4 @@ export default {
     explorer: null, // Would be FileExplorer component
   }
 };
+
