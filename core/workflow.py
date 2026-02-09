@@ -56,3 +56,8 @@ def workflow_node(id: str, name: str, inputs: List[NodeInput] = None, outputs: L
 
         return wrapper
     return decorator
+
+def clear_registry():
+    """Clear the node registry (useful for testing)."""
+    global NODE_REGISTRY
+    NODE_REGISTRY.clear()

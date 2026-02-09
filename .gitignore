@@ -13,3 +13,12 @@ venv/
 *.sqlite3
 *.db
 .DS_Store
+
+# LanceDB data
+.lancedb/
+plugins.db-journal
+
+# Web/Frontend
+web/node_modules/
+web/package-lock.json
+

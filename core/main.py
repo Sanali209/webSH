@@ -92,6 +92,11 @@ async def serve_gui(full_path: str):
 
     return FileResponse("dist/index.html")
 
+# Mount Plugin UI Static Files
+if os.path.exists("plugins"):
+    app.mount("/plugins", StaticFiles(directory="plugins"), name="plugins")
+    logger.info("Mounted plugin static files at /plugins")
+
 # Mount Frontend Static Files
 if os.path.exists("dist"):
     app.mount("/assets", StaticFiles(directory="dist/assets"), name="assets")

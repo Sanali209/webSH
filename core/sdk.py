@@ -1,21 +1,68 @@
 import abc
-from typing import Any, Callable, TypeVar
+from typing import Any, Callable, TypeVar, Dict, Optional
 from pydantic import BaseModel
+import logging
 
 T = TypeVar("T")
+logger = logging.getLogger(__name__)
 
 class PluginSettings(BaseModel):
     """Base class for plugin settings."""
     enabled: bool = True
 
+class CapabilityRegistry:
+    """
+    Registry for plugin capabilities that can be shared across plugins.
+    """
+    def __init__(self):
+        self._capabilities: Dict[str, Callable] = {}
+    
+    def register(self, name: str, handler: Callable) -> None:
+        """
+        Register a capability handler.
+        
+        Args:
+            name: Capability name (e.g., "llm.embed", "llm.generate")
+            handler: Callable that implements the capability
+        """
+        if name in self._capabilities:
+            logger.warning(f"Capability '{name}' is being overwritten")
+        self._capabilities[name] = handler
+        logger.info(f"Registered capability: {name}")
+    
+    def get(self, name: str) -> Optional[Callable]:
+        """
+        Get a capability handler by name.
+        
+        Args:
+            name: Capability name
+            
+        Returns:
+            The capability handler or None if not found
+        """
+        return self._capabilities.get(name)
+    
+    def has(self, name: str) -> bool:
+        """Check if a capability is registered."""
+        return name in self._capabilities
+    
+    def list_all(self) -> list[str]:
+        """List all registered capability names."""
+        return list(self._capabilities.keys())
+
 class PluginContext:
     """
     Context object provided to plugins, giving access to core capabilities.
     """
+    # Class-level capability registry shared across all plugins
+    _global_capabilities = CapabilityRegistry()
+    
     def __init__(self, plugin_id: str, db_context: Any = None):
         self.plugin_id = plugin_id
         # This will be replaced by the actual PluginDatabaseContext instance
         self.db = db_context
+        # Access to global capability registry
+        self.capabilities = self._global_capabilities
 
     def get_my_table(self) -> str:
         """

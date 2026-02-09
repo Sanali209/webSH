@@ -1,0 +1,12 @@
+{
+  "id": "deduplicator",
+  "name": "File Deduplicator",
+  "version": "0.1.0",
+  "description": "Identifies duplicate files across the system using content hashing and perceptual image matching.",
+  "author": "System",
+  "entry_point": "backend.py",
+  "type": "utility",
+  "capabilities": ["dedup.find_duplicates", "dedup.hash_file"],
+  "permissions": ["filesystem.read"],
+  "dependencies": ["system_fs"]
+}

@@ -1,0 +1,12 @@
+{
+  "id": "resource_controller",
+  "name": "Resource Controller",
+  "version": "0.1.0",
+  "description": "Monitors and manages system resources usage by plugins.",
+  "author": "System",
+  "entry_point": "backend.py",
+  "type": "system",
+  "capabilities": ["resources.monitor", "resources.quota"],
+  "permissions": ["system.resources"],
+  "dependencies": []
+}
