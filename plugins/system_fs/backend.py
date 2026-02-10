@@ -3,6 +3,7 @@ import hashlib
 import mimetypes
 import logging
 import time
+import asyncio
 from typing import List, Dict, Any, Optional
 from datetime import datetime
 from fastapi import APIRouter, HTTPException
@@ -11,15 +12,27 @@ from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 
 from core.sdk import PluginBase, PluginContext
+from core.events import event_bus
 from .config import FSSettings
 
 logger = logging.getLogger(__name__)
 
 class FSHandler(FileSystemEventHandler):
-    def __init__(self, context: PluginContext, settings: FSSettings):
+    def __init__(self, context: PluginContext, settings: FSSettings, loop: asyncio.AbstractEventLoop):
         self.context = context
         self.settings = settings
         self.core_table = context.db.get_core_table()
+        self.loop = loop
+
+    def _emit_change(self, event_type: str, path: str):
+        try:
+            future = asyncio.run_coroutine_threadsafe(
+                event_bus.publish(f"fs:{event_type}", {"path": path, "event": event_type}),
+                self.loop
+            )
+            # We don't wait for result to avoid blocking watchdog thread
+        except Exception as e:
+            logger.error(f"Failed to emit fs change event: {e}")
 
     def _should_ignore(self, path: str) -> bool:
         """Check if path should be ignored based on settings."""
@@ -99,19 +112,23 @@ class FSHandler(FileSystemEventHandler):
     def on_created(self, event):
         if not event.is_directory:
             self._update_db(event.src_path)
+            self._emit_change("created", event.src_path)
 
     def on_modified(self, event):
         if not event.is_directory:
             self._update_db(event.src_path)
+            self._emit_change("modified", event.src_path)
 
     def on_deleted(self, event):
         if not event.is_directory:
             self._delete_from_db(event.src_path)
+            self._emit_change("deleted", event.src_path)
 
     def on_moved(self, event):
         if not event.is_directory:
             self._delete_from_db(event.src_path)
             self._update_db(event.dest_path)
+            self._emit_change("moved", event.dest_path)
 
 
 class SystemFSPlugin(PluginBase):
@@ -154,7 +171,16 @@ class SystemFSPlugin(PluginBase):
 
     def on_load(self, context: PluginContext) -> None:
         self.observer = Observer()
-        handler = FSHandler(context, self.settings)
+        # Get the running loop from main thread context (on_load is called synchronously but we can get loop)
+        try:
+            loop = asyncio.get_running_loop()
+            logger.info("SystemFSPlugin captured running event loop.")
+        except RuntimeError:
+            # Fallback if no loop running (should not happen in main app, but maybe tests)
+            logger.warning("SystemFSPlugin: No running loop found! Creating new detached loop. Events may fail.")
+            loop = asyncio.new_event_loop()
+
+        handler = FSHandler(context, self.settings, loop)
         path_to_watch = os.path.abspath(self.settings.root_path)
 
         if os.path.exists(path_to_watch):
