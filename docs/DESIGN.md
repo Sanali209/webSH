@@ -1,103 +1,104 @@
-# Design Document: PC Center OS (v10.0)
+# Design Document: PC Center OS (v11.0)
 
 Этот документ описывает архитектуру **PC Center** — отказоустойчивой, модульной «Web OS» для локальной автоматизации, управления файлами и работы с LLM.
 
-> **Революция Архитектуры (v10.0):** Реализация **"Pluggable Shell Architecture" (Плагируемый Шелл)**. Ядро управляет системой слотов, а Shell и Плагины динамически обмениваются UI-компонентами через Native ES Modules.
+> **Революция Архитектуры (v11.0):** Реализация **"Single Process Architecture" (Единый Процесс)**. FastAPI становится "Единым Окном", раздавая API, основной Shell и UI плагинов на одном порту (8000), устраняя необходимость в Node.js/Nginx на продакшене.
 
 ---
 
-## 1. Философия: Реестр Намерений
+## 1. Концепция: FastAPI как Контент-Менеджер
 
-Интеграция UI происходит не через импорт кода, а через **Реестр Намерений (Intent Registry)**.
-1.  **Shell (Оболочка):** Объявляет, какие «дырки» (Slots) у него есть (`sidebar`, `tray`, `main_grid`).
-2.  **Plugin (Плагин):** Заявляет в манифесте, чем он хочет эти дырки заполнить.
-3.  **Kernel (Ядро):** Сопоставляет их и отдает Шеллу список компонентов для рендеринга.
+В этой модели Ядро выполняет три роли одновременно:
+1.  **API Маршруты:** Обрабатывают сигналы (`/api/v1/call`).
+2.  **Статика Шелла:** Раздает ядро системы (Рабочий стол) из папки `dist/`.
+3.  **Статика Плагинов:** Динамически «подмешивает» папки плагинов в общее дерево URL.
+
+**Преимущества:**
+*   **Zero CORS:** Фронтенд и бэкенд живут на одном домене/порту.
+*   **Атомарность:** Плагин — это папка. Загрузил — и он доступен и в API, и в UI.
+*   **Безопасность:** FastAPI Middleware может защищать даже статические файлы плагинов.
 
 ---
 
-## 2. Система Слотов (UI Injection)
+## 2. Реализация Ядра (Single Process Code)
 
-### 2.1. Объявление в Манифесте
-Плагин описывает свои UI-расширения в `manifest.json`.
+`main.py` динамически монтирует UI плагинов.
+
+```python
+import os
+from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
+
+app = FastAPI()
+
+# 1. Загрузка Backend-логики (см. v9.0)
+# load_plugin_backends()
+
+# 2. Динамическое монтирование UI плагинов
+def mount_plugin_uis():
+    plugins_path = "./plugins"
+    for plugin_id in os.listdir(plugins_path):
+        ui_dir = os.path.join(plugins_path, plugin_id, "ui")
+        if os.path.isdir(ui_dir):
+            # Теперь UI плагина доступен по адресу: /plugins/{id}/ui/index.js
+            app.mount(
+                f"/plugins/{plugin_id}/ui",
+                StaticFiles(directory=ui_dir),
+                name=f"ui_{plugin_id}"
+            )
+
+mount_plugin_uis()
+
+# 3. Монтирование основного UI (Shell)
+if os.path.exists("dist"):
+    app.mount("/assets", StaticFiles(directory="dist/assets"), name="assets")
+
+    # SPA Handler (отдает index.html на все остальные пути)
+    @app.get("/{full_path:path}")
+    async def serve_gui(full_path: str):
+        return FileResponse("dist/index.html")
+```
+
+---
+
+## 3. Обнаружение UI-расширений
+
+Чтобы Шелл узнал, какие скрипты загружать, Ядро предоставляет API.
+
+### 3.1. Эндпоинт `GET /api/v1/ui/extensions`
+Ядро сканирует манифесты и возвращает список точек входа.
 
 ```json
-"ui_extensions": [
+[
   {
-    "slot": "sidebar.actions",
-    "label": "Мои задачи",
-    "icon": "check-circle",
-    "component": "SidebarButton.js"
-  },
-  {
-    "slot": "desktop.widgets",
-    "component": "TaskWidget.js",
-    "size": "medium"
+    "slot": "sidebar",
+    "plugin_id": "task_tracker",
+    "entry": "/plugins/task_tracker/ui/Icon.js"
   }
 ]
 ```
 
-### 2.2. Рендеринг в Шелле (Svelte Logic)
-Шелл запрашивает у Ядра компоненты для конкретного слота и динамически их загружает.
+### 3.2. Динамический Импорт (Client-Side)
+Шелл использует этот путь для импорта модуля.
 
 ```javascript
-// Внутри Shell, когда нужно отрисовать плагин в слоте
-async function loadComponent(pluginId, fileName) {
-    // Native ES Modules через FastAPI статику
-    const url = `/plugins/${pluginId}/ui/${fileName}`;
-    const module = await import(/* @vite-ignore */ url);
-    return module.default; // Экспортируемый Svelte-компонент
+// Код внутри Shell UI (Svelte)
+async function loadPluginUI(pluginId) {
+    // Прямой импорт из FastAPI статики!
+    const module = await import(`/plugins/${pluginId}/ui/index.js`);
+    return module.default;
 }
 ```
 
 ---
 
-## 3. Управление Окнами (View Manager)
+## 4. Режим Разработки (Dev Mode)
 
-Поскольку Шелл — владелец экрана, другие плагины не могут сами создать окно. Они отправляют сигнал `ui.view.open`.
+В продакшене FastAPI отдает статику. В разработке нам нужен Hot Module Replacement (HMR).
 
-### 3.1. Команда ui.open_view
-1.  **Плагин** отправляет Сигнал в Ядро:
-    ```json
-    {
-      "domain": "ui.view.open",
-      "params": {
-        "plugin_id": "task_tracker",
-        "view_id": "task_details",
-        "mode": "modal",
-        "props": { "taskId": "ABC-123" }
-      }
-    }
-    ```
-2.  **Ядро** пересылает этот сигнал Шеллу (Capability `ui.manager`).
-3.  **Шелл**:
-    *   Создает контейнер окна/вкладки.
-    *   Динамически подгружает JS-файл: `/plugins/task_tracker/ui/TaskDetails.js`.
-    *   Рендерит компонент, передавая ему `props`.
+**Стратегия `DEV_MODE`:**
+1.  **True (Dev):** Ядро возвращает ссылки на Vite Dev Server (`http://localhost:5173/src/plugins/...`).
+2.  **False (Prod):** Ядро возвращает ссылки на скомпилированную статику (`/plugins/...`).
 
----
-
-## 4. Контекстные Слоты (Nested Slots)
-
-Иногда плагину нужно предоставить свои слоты для других.
-
-**Пример:** Файловый менеджер (File Manager Plugin).
-1.  Он объявляет слот: `file_manager.context_menu`.
-2.  **Плагин OCR** говорит: "Я хочу в `file_manager.context_menu`, если файл — это картинка".
-3.  Когда пользователь жмет ПКМ на картинке, Файловый менеджер спрашивает у Ядра: "Кто хочет в мой слот для этого файла?".
-4.  Ядро возвращает кнопку "Распознать текст".
-
----
-
-## 5. Итоговая Схема Взаимодействия
-
-| Действие | Путь сигнала |
-|---|---|
-| **Регистрация** | Плагин -> Ядро (Манифест сохраняется в Реестр) |
-| **Отрисовка Слота** | Шелл -> Ядро (Дай список для `sidebar`) -> Шелл (Рендерит) |
-| **Переход в модуль** | Плагин А -> Ядро -> Шелл (Загружает View Плагина А) |
-| **Взаимодействие** | Плагин А -> Ядро (Capability: `storage.save`) -> Плагин Б (БД) |
-
-### Почему это «чисто»?
-1.  **Zero DOM Manipulation:** Ядро не касается HTML. Оно оперирует только JSON-описаниями.
-2.  **Replaceable Shell:** Можно заменить `desktop_shell` на `terminal_shell`, и он просто проигнорирует графические виджеты, но покажет текстовые команды.
-3.  **Version Isolation:** Каждый плагин загружает свои зависимости внутри своего JS-модуля.
+Это позволяет разработчику видеть изменения мгновенно, а пользователю — запускать систему одной командой `python main.py`.
