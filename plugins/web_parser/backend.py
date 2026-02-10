@@ -1,4 +1,5 @@
 """Web Parser Plugin Backend - Crawl, parse, and search web content."""
+import asyncio
 import logging
 import re
 from datetime import datetime
@@ -276,22 +277,21 @@ class WebParserPlugin(PluginBase):
                 POST /api/plugins/web_parser/parse_batch
                 {"urls": ["https://example.com", "https://example.org"]}
             """
-            results = []
-            for url in request.urls:
+            async def parse_one(url):
                 try:
-                    result = await parse_url(ParseRequest(url=url, force_refresh=request.force_refresh))
-                    results.append(result)
+                    return await parse_url(ParseRequest(url=url, force_refresh=request.force_refresh))
                 except Exception as e:
                     logger.error(f"Error parsing {url}: {e}")
-                    results.append(ParseResponse(
+                    return ParseResponse(
                         url=str(url),
                         title=str(url),
                         status="error",
                         text_length=0,
                         parsed_at=datetime.now().isoformat()
-                    ))
-            
-            return results
+                    )
+
+            tasks = [parse_one(url) for url in request.urls]
+            return await asyncio.gather(*tasks)
         
         @self.router.get("/search", response_model=SearchResponse)
         async def search(q: str, limit: int = 10, min_score: float = 0.5):
