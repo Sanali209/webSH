@@ -38,7 +38,8 @@ def test_fs_scan(fs_setup):
 
 def test_fs_handler_sync(fs_setup, mock_context):
     settings = FSSettings(root_path=str(fs_setup))
-    handler = FSHandler(mock_context, settings)
+    loop = MagicMock()
+    handler = FSHandler(mock_context, settings, loop)
 
     # Test on_created
     new_file = fs_setup / "new.txt"
@@ -59,7 +60,8 @@ def test_fs_handler_sync(fs_setup, mock_context):
 
 def test_fs_handler_delete(fs_setup, mock_context):
     settings = FSSettings(root_path=str(fs_setup))
-    handler = FSHandler(mock_context, settings)
+    loop = MagicMock()
+    handler = FSHandler(mock_context, settings, loop)
 
     file_to_del = fs_setup / "file1.txt"
 

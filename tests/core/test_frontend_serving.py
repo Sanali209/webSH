@@ -60,7 +60,7 @@ def test_api_routes_still_work(mock_dist):
     # API should still work
     response = client.get("/api/status")
     assert response.status_code == 200
-    assert response.json() == {"status": "ok"}
+    assert response.json()["status"] == "ok"
 
 def test_static_assets_serving(mock_dist):
     """

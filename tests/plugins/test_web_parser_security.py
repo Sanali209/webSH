@@ -1,40 +1,5 @@
 import sys
 from unittest.mock import Mock, AsyncMock, patch, MagicMock
-
-# Mock dependencies before importing plugin modules
-class MockBaseModel:
-    def __init__(self, **data):
-        # Set some default values that are expected by the code
-        self.timeout = 30
-        self.user_agent = "PC-Center-WebParser/0.1.0"
-        self.max_content_length = 5 * 1024 * 1024
-        self.max_text_length = 50000
-        self.extract_links = True
-        self.strip_html_tags = ["script", "style"]
-        self.min_search_score = 0.5
-        for k, v in data.items():
-            setattr(self, k, v)
-    def model_dump(self):
-        return {}
-
-pydantic_mock = MagicMock()
-pydantic_mock.BaseModel = MockBaseModel
-sys.modules['pydantic'] = pydantic_mock
-
-fastapi_mock = MagicMock()
-sys.modules['fastapi'] = fastapi_mock
-
-httpx_mock = MagicMock()
-class MockHTTPError(Exception):
-    pass
-httpx_mock.HTTPError = MockHTTPError
-sys.modules['httpx'] = httpx_mock
-
-bs4_mock = MagicMock()
-sys.modules['bs4'] = bs4_mock
-
-sys.modules['lxml'] = MagicMock()
-
 import unittest
 import asyncio
 import socket
@@ -106,6 +71,8 @@ class TestWebParserSecurity(unittest.IsolatedAsyncioTestCase):
         mock_response.is_redirect = True
         mock_response.status_code = 302
         mock_response.headers = {"Location": "http://127.0.0.1/admin"}
+        mock_response.url = MagicMock()
+        mock_response.url.join = lambda x: x
 
         mock_client = AsyncMock()
         mock_client.get = AsyncMock(return_value=mock_response)

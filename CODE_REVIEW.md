@@ -68,7 +68,7 @@ This document provides a comprehensive analysis of the current codebase and outl
 - **Error Handling:** Inconsistent use of `try/except`. Some blocks swallow exceptions with just a log.
   - *Recommendation:* Define custom exception classes and use a global exception handler in FastAPI to standardize API error responses.
 - **Logging:** Basic `logging` usage.
-  - *Recommendation:* switch to `structlog` for structured JSON logging, which is easier to parse and monitor.
+  - *Recommendation:* switch to `structlog` or `loguru` for structured JSON logging, which is easier to parse and monitor.
 - **Testing:** Tests rely heavily on mocking.
   - *Recommendation:* Add integration tests that spin up a real database (in-memory or temp file) to verify actual behavior.
 
@@ -79,7 +79,7 @@ This document provides a comprehensive analysis of the current codebase and outl
 ## Phase 1: Foundation Hardening
 1.  **Dependency Injection:** Refactor `core` to use a DI container.
 2.  **Configuration:** Implement `pydantic-settings` for centralized config.
-3.  **Logging:** Replace standard logging with `structlog`.
+3.  **Logging:** Replace standard logging with `loguru` (or `structlog`).
 
 ## Phase 2: Data Persistence & Integrity
 1.  **Refactor Web Parser:** Move storage from memory to LanceDB.
