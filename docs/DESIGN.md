@@ -1,104 +1,85 @@
-# Design Document: PC Center OS (v11.0)
+# Design Document: PC Center OS (v12.0)
 
 Этот документ описывает архитектуру **PC Center** — отказоустойчивой, модульной «Web OS» для локальной автоматизации, управления файлами и работы с LLM.
 
-> **Революция Архитектуры (v11.0):** Реализация **"Single Process Architecture" (Единый Процесс)**. FastAPI становится "Единым Окном", раздавая API, основной Shell и UI плагинов на одном порту (8000), устраняя необходимость в Node.js/Nginx на продакшене.
+> **Революция Архитектуры (v12.0):** Реализация **"Security Barrier" (Барьер Безопасности)**. В условиях отсутствия песочницы, Ядро реализует Селективный Доступ (Scoped Permissions) и Токенизацию Вызовов для предотвращения горизонтального перемещения угроз.
 
 ---
 
-## 1. Концепция: FastAPI как Контент-Менеджер
+## 1. Философия: Пограничный Контроль
 
-В этой модели Ядро выполняет три роли одновременно:
-1.  **API Маршруты:** Обрабатывают сигналы (`/api/v1/call`).
-2.  **Статика Шелла:** Раздает ядро системы (Рабочий стол) из папки `dist/`.
-3.  **Статика Плагинов:** Динамически «подмешивает» папки плагинов в общее дерево URL.
-
-**Преимущества:**
-*   **Zero CORS:** Фронтенд и бэкенд живут на одном домене/порту.
-*   **Атомарность:** Плагин — это папка. Загрузил — и он доступен и в API, и в UI.
-*   **Безопасность:** FastAPI Middleware может защищать даже статические файлы плагинов.
+Система безопасности стоит прямо в Switchboard (Диспетчере) и проверяет каждый сигнал по трем критериям:
+1.  **Manifest-Control (Статический):** Плагин обязан заранее объявить в `manifest.json`, к каким domains он обращается.
+2.  **Identity Check (Динамический):** Фронтенд плагина должен предъявить Capability Token (CT), выданный Шеллом.
+3.  **User Consent (Интерактивный):** Для критических операций (удаление, сеть) Ядро запрашивает подтверждение пользователя.
 
 ---
 
-## 2. Реализация Ядра (Single Process Code)
+## 2. Реализация Барьера (Security Interceptor)
 
-`main.py` динамически монтирует UI плагинов.
+Ядро внедряет слой проверки (`SecurityBarrier`) перед вызовом любого Capability.
 
 ```python
-import os
-from fastapi import FastAPI
-from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse
+class SecurityBarrier:
+    def __init__(self, registry):
+        self.registry = registry # Реестр манифестов
 
-app = FastAPI()
+    async def verify_call(self, caller_id: str, target_domain: str):
+        # 1. Системные плагины имеют полный доступ
+        if self.registry.is_system(caller_id):
+            return True
 
-# 1. Загрузка Backend-логики (см. v9.0)
-# load_plugin_backends()
+        # 2. Проверка разрешений в манифесте
+        manifest = self.registry.get_manifest(caller_id)
+        allowed_scopes = manifest.get("permissions", [])
 
-# 2. Динамическое монтирование UI плагинов
-def mount_plugin_uis():
-    plugins_path = "./plugins"
-    for plugin_id in os.listdir(plugins_path):
-        ui_dir = os.path.join(plugins_path, plugin_id, "ui")
-        if os.path.isdir(ui_dir):
-            # Теперь UI плагина доступен по адресу: /plugins/{id}/ui/index.js
-            app.mount(
-                f"/plugins/{plugin_id}/ui",
-                StaticFiles(directory=ui_dir),
-                name=f"ui_{plugin_id}"
-            )
+        # Проверяем wildcard-совпадение (н-р, "ai.*" -> "ai.summarize")
+        for scope in allowed_scopes:
+            if self._match_scope(scope, target_domain):
+                return True
 
-mount_plugin_uis()
+        raise PermissionError(f"Plugin {caller_id} has no permission for {target_domain}")
 
-# 3. Монтирование основного UI (Shell)
-if os.path.exists("dist"):
-    app.mount("/assets", StaticFiles(directory="dist/assets"), name="assets")
-
-    # SPA Handler (отдает index.html на все остальные пути)
-    @app.get("/{full_path:path}")
-    async def serve_gui(full_path: str):
-        return FileResponse("dist/index.html")
+    def _match_scope(self, scope: str, domain: str) -> bool:
+        import fnmatch
+        return fnmatch.fnmatch(domain, scope)
 ```
 
 ---
 
-## 3. Обнаружение UI-расширений
+## 3. Токенизация Фронтенда (Frontend Barrier)
 
-Чтобы Шелл узнал, какие скрипты загружать, Ядро предоставляет API.
-
-### 3.1. Эндпоинт `GET /api/v1/ui/extensions`
-Ядро сканирует манифесты и возвращает список точек входа.
-
-```json
-[
-  {
-    "slot": "sidebar",
-    "plugin_id": "task_tracker",
-    "entry": "/plugins/task_tracker/ui/Icon.js"
-  }
-]
-```
-
-### 3.2. Динамический Импорт (Client-Side)
-Шелл использует этот путь для импорта модуля.
-
-```javascript
-// Код внутри Shell UI (Svelte)
-async function loadPluginUI(pluginId) {
-    // Прямой импорт из FastAPI статики!
-    const module = await import(`/plugins/${pluginId}/ui/index.js`);
-    return module.default;
-}
-```
+Чтобы один плагин не мог «притвориться» другим через `fetch()`:
+1.  **Загрузка:** Шелл запрашивает компонент плагина.
+2.  **Инъекция:** Ядро выдает короткоживущий `session_key` (или JWT) для этого плагина.
+3.  **Вызов:** Все запросы к `/api/v1/call` обязаны содержать заголовок `X-Plugin-Token`.
 
 ---
 
-## 4. Режим Разработки (Dev Mode)
+## 4. Матрица Доступа (Access Control Matrix)
 
-В продакшене FastAPI отдает статику. В разработке нам нужен Hot Module Replacement (HMR).
+Ядро поддерживает иерархию прав для гранулярного контроля.
 
-**Стратегия `DEV_MODE`:**
-1.  **True (Dev):** Ядро возвращает ссылки на Vite Dev Server (`http://localhost:5173/src/plugins/...`).
-2.  **False (Prod):** Ядро возвращает ссылки на скомпилированную статику (`/plugins/...`).
+| Уровень | Доступ | Описание |
+|---|---|---|
+| **CORE** | `*.*` | Полный доступ (только для системных модулей). |
+| **USER_READ** | `domain.read` | Только получение данных. Разрешено по умолчанию. |
+| **USER_WRITE** | `domain.write` | Изменение данных. Требует декларации в манифесте. |
+| **SENSITIVE** | `os.*`, `net.*` | Требует явного подтверждения пользователем (Pop-up). |
 
-Это позволяет разработчику видеть изменения мгновенно, а пользователю — запускать систему одной командой `python main.py`.
+---
+
+## 5. Защита Микросервисов (Remote Security)
+
+Для внешних Docker-контейнеров используется **HMAC / Shared Secret**.
+1.  При регистрации микросервис получает от Ядра секретный ключ.
+2.  Все HTTP-запросы подписываются этим ключом.
+3.  Это гарантирует, что никто в локальной сети не сможет отправить ложный сигнал (например, в OCR-сервис).
+
+---
+
+## 6. Баланс Безопасности и Удобства
+
+Чтобы избежать "усталости от уведомлений":
+*   **Safe by Default:** Чтение метаданных и UI-инъекции разрешены без подтверждения.
+*   **Side Effects:** Подтверждение требуется только для действий, меняющих состояние (удаление файла) или отправляющих данные вовне.
