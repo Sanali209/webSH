@@ -43,20 +43,7 @@ class DatabaseClient:
 
         table_name = "core_metadata"
 
-        # table_names() is deprecated, use list_tables()
-        # Since this client might be used with older versions, we check availability if needed,
-        # but for this environment we aim for compatibility with current docs.
-        # However, lancedb-python API has evolved. Checking generic list behavior.
-
-        try:
-            # Try newer API first if available on connection object
-            if hasattr(self.connection, "list_tables"):
-                existing_tables = self.connection.list_tables()
-            else:
-                # Fallback to deprecated
-                existing_tables = self.connection.table_names()
-        except AttributeError:
-             existing_tables = self.connection.table_names()
+        existing_tables = self.connection.list_tables()
 
         if table_name in existing_tables:
              return self.connection.open_table(table_name)

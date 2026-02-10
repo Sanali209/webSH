@@ -56,3 +56,19 @@ try:
 except ImportError:
     fastapi_mock = MagicMock()
     sys.modules["fastapi"] = fastapi_mock
+
+# Mock lancedb if missing
+try:
+    import lancedb
+except ImportError:
+    lancedb_mock = MagicMock()
+    sys.modules["lancedb"] = lancedb_mock
+
+# Mock pyarrow if missing
+try:
+    import pyarrow
+except ImportError:
+    pyarrow_mock = MagicMock()
+    pyarrow_mock.schema = MagicMock()
+    pyarrow_mock.field = MagicMock()
+    sys.modules["pyarrow"] = pyarrow_mock
