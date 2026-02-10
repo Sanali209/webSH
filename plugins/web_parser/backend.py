@@ -7,6 +7,7 @@ from typing import Dict, List, Optional
 from urllib.parse import urlparse
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, HttpUrl
+from .utils import is_safe_url
 import httpx
 from bs4 import BeautifulSoup
 
@@ -84,9 +85,10 @@ class WebCrawler:
     
     async def initialize(self):
         """Initialize the HTTP client."""
+        # We disable automatic redirects to manually validate each URL in the redirect chain for SSRF.
         self.client = httpx.AsyncClient(
             timeout=self.settings.timeout,
-            follow_redirects=True,
+            follow_redirects=False,
             headers={"User-Agent": self.settings.user_agent}
         )
     
@@ -97,7 +99,7 @@ class WebCrawler:
     
     async def fetch_url(self, url: str) -> Optional[str]:
         """
-        Fetch HTML content from a URL.
+        Fetch HTML content from a URL with SSRF protection.
         
         Args:
             url: URL to fetch
@@ -108,17 +110,43 @@ class WebCrawler:
         if not self.client:
             await self.initialize()
         
+        current_url = url
+        max_redirects = 5
+
         try:
-            response = await self.client.get(url)
-            response.raise_for_status()
+            for _ in range(max_redirects + 1):
+                # SSRF Protection: Validate URL before every request
+                if not await is_safe_url(current_url):
+                    logger.warning(f"SSRF Protection: Blocked request to {current_url}")
+                    return None
+
+                response = await self.client.get(current_url)
+
+                if response.is_redirect:
+                    redirect_url = response.headers.get("Location")
+                    if not redirect_url:
+                        break
+
+                    # Resolve relative URLs
+                    if not urlparse(redirect_url).netloc:
+                        current_url = str(response.url.join(redirect_url))
+                    else:
+                        current_url = redirect_url
+                    continue
+
+                response.raise_for_status()
+
+                # Check content length
+                content_length = len(response.content)
+                if content_length > self.settings.max_content_length:
+                    logger.warning(f"Content too large: {current_url} ({content_length} bytes)")
+                    return None
+
+                return response.text
+
+            logger.warning(f"Too many redirects for URL: {url}")
+            return None
             
-            # Check content length
-            content_length = len(response.content)
-            if content_length > self.settings.max_content_length:
-                logger.warning(f"Content too large: {url} ({content_length} bytes)")
-                return None
-            
-            return response.text
         except httpx.HTTPError as e:
             logger.error(f"Error fetching {url}: {e}")
             return None
