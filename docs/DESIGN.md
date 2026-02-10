@@ -1,164 +1,129 @@
-# Design Document: PC Center OS (v8.0)
+# Design Document: PC Center OS (v9.0)
 
 Этот документ описывает архитектуру **PC Center** — отказоустойчивой, модульной «Web OS» для локальной автоматизации, управления файлами и работы с LLM.
 
-> **Революция Архитектуры (v8.0):** Стандартизация **"Handshake Protocol" (Протокол Рукопожатия)**. Это единственный момент, когда Ядро «всматривается» в плагин. После регистрации Ядро работает как почтальон, пересылая пакеты данных через Реактивный Диспетчер.
+> **Революция Архитектуры (v9.0):** Реализация **"FastAPI Thin Kernel" (Ультратонкое Ядро)**. Ядро работает как прокси между HTTP-запросами браузера и вызовами функций в Python-модулях, загружаемых динамически.
 
 ---
 
-## 1. Философия: Ядро как Реестр и Диспетчер
+## 1. Архитектурная Схема
 
-Шина Ядра состоит из трех независимых слоев:
-1.  **Registry (Реестр):** База данных «способностей» (Capabilities). Хранит манифесты и схемы.
-2.  **Dispatcher (Диспетчер):** Логика поиска провайдера и валидация пакетов.
-3.  **Transport (Транспорт):** Адаптеры (Internal Asyncio + HTTP Gateway).
+*   **Ядро (Kernel):** Запускает FastAPI и управляет жизненным циклом.
+*   **FastAPI:**
+    *   Служит шиной для API (`/api/v1/call`).
+    *   Раздает основной Shell (Рабочий стол) из `dist/`.
+    *   Динамически монтирует папки `/ui` каждого плагина как статические пути.
+*   **Лоадер (Loader):** Ищет в папках плагинов файлы `backend.py` и импортирует их в память (importlib).
 
 ---
 
-## 2. Handshake Protocol (Протокол Регистрации)
+## 2. Структура Проекта
 
-Каждый модуль (Python-плагин или Docker-контейнер) отправляет Ядру **Manifest Payload** в формате JSON при старте.
+```text
+/pc_center
+├── main.py              # Запуск FastAPI и Ядра
+├── /core                # Код Диспетчера (Switchboard)
+├── /dist                # Скомпилированный Shell (UI Рабочего стола)
+└── /plugins
+    └── /my_plugin       # Папка плагина
+        ├── manifest.json
+        ├── backend.py   # Python-код (Исполняется Ядром)
+        └── /ui          # JS/CSS (Раздается FastAPI как статика)
+```
 
-### 2.1. Формат Манифеста
-```json
+> **Важно:** Backend (Python) исполняется на сервере. Frontend (JS) раздается браузеру как статика и общается с сервером через API.
+
+---
+
+## 3. Реализация Ядра (Conceptual Code)
+
+Ядро состоит из Диспетчера (Switchboard) и Лоадера.
+
+```python
+import os
+import importlib.util
+from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
+
+app = FastAPI()
+
+# --- СЛОЙ ДИСПЕТЧЕРА (SWITCHBOARD) ---
+class Switchboard:
+    def __init__(self):
+        self.capabilities = {} # Реестр функций
+
+    def register(self, manifest, backend_module):
+        plugin_id = manifest["id"]
+        for cap in manifest.get("capabilities", []):
+            domain = cap["domain"]
+            self.capabilities[domain] = {
+                "plugin_id": plugin_id,
+                "handler": getattr(backend_module, "handle_signal"),
+                "schema": cap["input_schema"]
+            }
+
+bus = Switchboard()
+
+# --- ЛОАДЕР ПЛАГИНОВ ---
+def load_plugins():
+    plugins_root = "./plugins"
+    for folder in os.listdir(plugins_root):
+        path = os.path.join(plugins_root, folder)
+
+        # 1. Читаем манифест
+        # ... (json.load manifest.json)
+
+        # 2. Исполняем Backend (Python)
+        spec = importlib.util.spec_from_file_location(f"p_{folder}", f"{path}/backend.py")
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+
+        # Регистрируем возможности
+        bus.register(manifest, module)
+
+        # 3. Раздаем Frontend (Static)
+        ui_path = f"{path}/ui"
+        if os.path.exists(ui_path):
+            app.mount(f"/plugins/{manifest['id']}/ui", StaticFiles(directory=ui_path))
+```
+
+---
+
+## 4. API и Поток Данных
+
+### 4.1. Вызов Capability (API Broker)
+Frontend (JS) делает POST-запрос, чтобы вызвать функцию Backend (Python).
+
+```http
+POST /api/v1/call
 {
-  "id": "go_ocr_service",
-  "type": "remote",
-  "endpoint": "http://192.168.1.50:9000/process",
-  "version": "1.0.0",
-  "capabilities": [ ... ],
-  "integrations": { ... }
-}
-```
-
-**Основные поля (Header):**
-| Поле | Тип | Описание |
-|---|---|---|
-| `id` | string | Уникальный ID (slug, н-р `task_tracker`). |
-| `type` | enum | `local` (Python), `remote` (HTTP), `internal` (Core Module). |
-| `endpoint` | url? | URL для remote плагинов (куда Ядру слать сигналы). |
-| `version` | string | Версия плагина (SemVer). |
-
-### 2.2. Секция Capabilities (Возможности)
-Плагин описывает свои функции и схемы данных (JSON Schema).
-
-```json
-"capabilities": [
-  {
-    "domain": "ai.text.summarize",
-    "description": "Суммаризация текстов через Llama3",
-    "metadata": {
-      "speed": "fast",
-      "is_offline": true,
-      "max_tokens": 8192
-    },
-    "input_schema": {
-      "type": "object",
-      "properties": {
-        "text": { "type": "string" },
-        "length": { "type": "integer", "default": 100 }
-      },
-      "required": ["text"]
-    },
-    "output_schema": {
-       "type": "object",
-       "properties": {
-         "summary": { "type": "string" }
-       }
-    }
-  }
-]
-```
-
-### 2.3. Секция Integration Points (Слоты)
-Плагин объявляет, куда он хочет встроиться.
-*   **Consumers (Подписчики):** Слушают события.
-*   **Producers (Инжекторы):** Вставляют свой UI/данные в чужой слот.
-
-```json
-"integrations": {
-  "slots": [
-    {
-      "id": "ui.sidebar.action",
-      "component_url": "/ui/sidebar_icon.js",
-      "priority": 10
-    },
-    {
-      "id": "ui.context_menu.file",
-      "label": "Прочитать содержимое",
-      "icon": "book-open"
-    }
-  ]
-}
-```
-
----
-
-## 3. Signal Protocol (Протокол Обмена)
-
-После регистрации общение происходит через унифицированные Сигналы.
-
-### 3.1. Структура Сигнала (Request)
-```json
-{
-  "correlation_id": "uuid-v4",
   "domain": "ai.text.summarize",
-  "params": {
-    "text": "Длинный текст для анализа...",
-    "length": 50
-  },
-  "context": {
-    "caller_id": "web_parser",
-    "timestamp": 1739185472
-  }
+  "params": { "text": "..." }
 }
 ```
 
-### 3.2. Алгоритм Обработки (The Broker Logic)
-Когда Ядро получает Сигнал, оно проходит 4 стадии:
-
-1.  **Discovery (Поиск):** Находит в Реестре всех провайдеров домена (н-р, `ai.text.summarize`).
-2.  **Filtering (Фильтрация):** Если в запросе были `constraints` (н-р, `is_offline: true`), отсеивает неподходящих.
-3.  **Validation (Валидация):** Берет `params` и проверяет их на соответствие `input_schema` провайдера.
-    *   *Security Guard:* Если данные невалидны — Ядро возвращает ошибку 422, даже не беспокоя провайдера.
-4.  **Dispatch (Доставка):**
-    *   Для `local`: Вызывает асинхронную функцию в Python.
-    *   Для `remote`: Делает HTTP POST запрос на `endpoint` провайдера.
-
----
-
-## 4. Пример: Внешний Микросервис (Go OCR)
-
-Представь, что отдельно запущен сервис на Go, который делает OCR. Он регистрируется через API Ядра:
-
-```json
-{
-  "id": "go_ocr_service",
-  "type": "remote",
-  "endpoint": "http://192.168.1.50:9000/process",
-  "version": "1.0.0",
-  "capabilities": [
-    {
-      "domain": "vision.ocr",
-      "metadata": { "languages": ["ru", "en"], "gpu": false },
-      "input_schema": {
-        "type": "object",
-        "properties": { "image_url": { "type": "string" } }
-      }
-    }
-  ],
-  "integrations": {
-    "slots": [
-      { "id": "ui.file_preview.image", "label": "Распознать текст" }
-    ]
-  }
-}
+**Обработчик в Ядре:**
+```python
+@app.post("/api/v1/call")
+async def call_capability(signal: dict):
+    domain = signal.get("domain")
+    if domain in bus.capabilities:
+        handler = bus.capabilities[domain]["handler"]
+        return await handler(signal["params"])
+    return {"error": "Capability not found"}
 ```
 
+### 4.2. Загрузка UI (Shell)
+1.  Пользователь открывает `localhost:8000`.
+2.  FastAPI отдает `dist/index.html` (Shell).
+3.  Shell загружается и запрашивает список плагинов.
+4.  Shell динамически импортирует JS-модули плагинов по путям `/plugins/{id}/ui/index.js`.
+
 ---
 
-## 5. Преимущества Спецификации
+## 5. Преимущества Реализации
 
-1.  **Унификация:** Для Ядра нет разницы между «функцией в соседней папке» и «сервером в другой стране».
-2.  **Безопасность:** Ядро работает как Schema Guard. Если плагин-отправитель попытается взломать плагин-получатель, отправив кривой JSON, Ядро это заблокирует.
-3.  **Динамичность:** Можно зарегистрировать новый Capability прямо во время работы системы (через консоль или скрипт), и он тут же станет доступен всем.
+1.  **Чистое разделение:** Backend — в памяти Python, Frontend — в браузере.
+2.  **Модульность:** Плагины полностью изолированы в своих папках.
+3.  **Производительность:** Прямой вызов Python-функций (без HTTP overhead для локальных плагинов) через `getattr`.
+4.  **Простота:** Весь механизм ядра умещается в ~100 строк кода.
