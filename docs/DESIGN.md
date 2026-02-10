@@ -1,85 +1,111 @@
-# Design Document: PC Center OS (v12.0)
+# Design Document: PC Center OS (v13.0)
 
 Этот документ описывает архитектуру **PC Center** — отказоустойчивой, модульной «Web OS» для локальной автоматизации, управления файлами и работы с LLM.
 
-> **Революция Архитектуры (v12.0):** Реализация **"Security Barrier" (Барьер Безопасности)**. В условиях отсутствия песочницы, Ядро реализует Селективный Доступ (Scoped Permissions) и Токенизацию Вызовов для предотвращения горизонтального перемещения угроз.
+> **Революция Архитектуры (v13.0):** Реализация **"Security Audit & Consent" (Аудит и Согласие)**. Механизм автоматического анализа манифестов, категоризации рисков и интерактивного подтверждения пользователем.
 
 ---
 
-## 1. Философия: Пограничный Контроль
+## 1. Философия: Доверие и Контроль
 
-Система безопасности стоит прямо в Switchboard (Диспетчере) и проверяет каждый сигнал по трем критериям:
-1.  **Manifest-Control (Статический):** Плагин обязан заранее объявить в `manifest.json`, к каким domains он обращается.
-2.  **Identity Check (Динамический):** Фронтенд плагина должен предъявить Capability Token (CT), выданный Шеллом.
-3.  **User Consent (Интерактивный):** Для критических операций (удаление, сеть) Ядро запрашивает подтверждение пользователя.
+Вместо жесткой песочницы используется декларативная безопасность. Плагин «признается» в намерениях через манифест, а пользователь их одобряет.
+*   **Автоматический Аудит:** При установке плагин анализируется на наличие опасных разрешений.
+*   **Управление Согласием:** Пользователь видит понятный отчет о рисках перед активацией.
+*   **runtime-проверка:** Ядро блокирует любые действия плагина, пока он не перейдет в статус `ACTIVE`.
 
 ---
 
-## 2. Реализация Барьера (Security Interceptor)
+## 2. Процесс Установки (Installation Flow)
 
-Ядро внедряет слой проверки (`SecurityBarrier`) перед вызовом любого Capability.
+Когда плагин появляется в системе, он не активен сразу.
+
+1.  **Сканирование:** Ядро читает `manifest.json`.
+2.  **Статус PENDING_AUDIT:** Плагин загружен, но его сигналы блокируются Switchboard.
+3.  **Генерация Отчета:** Сервис `SecurityAuditor` сопоставляет права с уровнями риска.
+4.  **Вердикт Пользователя:** В Шелле появляется окно аудита. Только после нажатия "Принять" плагин становится `ACTIVE`.
+
+---
+
+## 3. Категоризация Рисков (Risk Levels)
+
+| Уровень | Цвет | Домены (Примеры) | Действие системы |
+|---|---|---|---|
+| **Low** | 🟢 | `ui.slot.*`, `theme.change` | Разрешено автоматически. |
+| **Medium** | 🟡 | `storage.read`, `ai.summarize` | Упоминается в отчете. |
+| **High** | 🟠 | `network.request`, `storage.write` | Требует явного "Ок" при установке. |
+| **Critical** | 🔴 | `os.execute`, `storage.delete` | Требует повторного подтверждения. |
+
+---
+
+## 4. Реализация Аудитора (Backend Logic)
+
+Сервис анализирует манифест и возвращает JSON-отчет для UI.
 
 ```python
-class SecurityBarrier:
-    def __init__(self, registry):
-        self.registry = registry # Реестр манифестов
+class SecurityAuditor:
+    SENSITIVE_DOMAINS = {
+        "storage.delete": "Критический: Удаление ваших данных",
+        "network.request": "Высокий: Отправка данных на внешние сервера",
+        "os.execute": "Критический: Запуск системных команд",
+    }
 
-    async def verify_call(self, caller_id: str, target_domain: str):
-        # 1. Системные плагины имеют полный доступ
-        if self.registry.is_system(caller_id):
-            return True
+    def generate_report(self, manifest: dict) -> dict:
+        permissions = manifest.get("permissions", [])
+        report = {"plugin_id": manifest["id"], "risks": [], "is_safe": True}
 
-        # 2. Проверка разрешений в манифесте
-        manifest = self.registry.get_manifest(caller_id)
-        allowed_scopes = manifest.get("permissions", [])
+        for perm in permissions:
+            if perm in self.SENSITIVE_DOMAINS:
+                risk_level = "high" if "delete" in perm or "network" in perm else "critical"
+                report["risks"].append({
+                    "scope": perm,
+                    "description": self.SENSITIVE_DOMAINS[perm],
+                    "level": risk_level
+                })
+                report["is_safe"] = False
 
-        # Проверяем wildcard-совпадение (н-р, "ai.*" -> "ai.summarize")
-        for scope in allowed_scopes:
-            if self._match_scope(scope, target_domain):
-                return True
-
-        raise PermissionError(f"Plugin {caller_id} has no permission for {target_domain}")
-
-    def _match_scope(self, scope: str, domain: str) -> bool:
-        import fnmatch
-        return fnmatch.fnmatch(domain, scope)
+        return report
 ```
 
 ---
 
-## 3. Токенизация Фронтенда (Frontend Barrier)
+## 5. Runtime Проверка (Switchboard Barrier)
 
-Чтобы один плагин не мог «притвориться» другим через `fetch()`:
-1.  **Загрузка:** Шелл запрашивает компонент плагина.
-2.  **Инъекция:** Ядро выдает короткоживущий `session_key` (или JWT) для этого плагина.
-3.  **Вызов:** Все запросы к `/api/v1/call` обязаны содержать заголовок `X-Plugin-Token`.
+Диспетчер (Switchboard) при каждом вызове проверяет статус аудита.
 
----
+```python
+async def call(self, caller_id: str, domain: str, params: dict):
+    # 1. Проверяем статус аудита (SQLite)
+    if not self.config_db.is_plugin_active(caller_id):
+        raise PermissionError(f"Plugin {caller_id} is pending audit or disabled.")
 
-## 4. Матрица Доступа (Access Control Matrix)
+    # 2. Проверяем разрешения (Security Barrier)
+    if not self.barrier.verify(caller_id, domain):
+        raise PermissionError(f"Access to {domain} denied by policy.")
 
-Ядро поддерживает иерархию прав для гранулярного контроля.
-
-| Уровень | Доступ | Описание |
-|---|---|---|
-| **CORE** | `*.*` | Полный доступ (только для системных модулей). |
-| **USER_READ** | `domain.read` | Только получение данных. Разрешено по умолчанию. |
-| **USER_WRITE** | `domain.write` | Изменение данных. Требует декларации в манифесте. |
-| **SENSITIVE** | `os.*`, `net.*` | Требует явного подтверждения пользователем (Pop-up). |
-
----
-
-## 5. Защита Микросервисов (Remote Security)
-
-Для внешних Docker-контейнеров используется **HMAC / Shared Secret**.
-1.  При регистрации микросервис получает от Ядра секретный ключ.
-2.  Все HTTP-запросы подписываются этим ключом.
-3.  Это гарантирует, что никто в локальной сети не сможет отправить ложный сигнал (например, в OCR-сервис).
+    # 3. Исполняем вызов
+    provider = self.registry.find_provider(domain)
+    return await provider.execute(params)
+```
 
 ---
 
-## 6. Баланс Безопасности и Удобства
+## 6. Интерфейс Аудита (UI Shell)
 
-Чтобы избежать "усталости от уведомлений":
-*   **Safe by Default:** Чтение метаданных и UI-инъекции разрешены без подтверждения.
-*   **Side Effects:** Подтверждение требуется только для действий, меняющих состояние (удаление файла) или отправляющих данные вовне.
+Шелл отображает пользователю не JSON, а понятные предупреждения:
+
+> **Установка плагина "Web Scraper Pro"**
+>
+> Этот плагин запрашивает следующие разрешения:
+> *   🟢 Доступ к боковой панели (UI)
+> *   🟠 Чтение файлов в папке /Downloads (Storage)
+> *   🟠 Доступ к сети интернет (Network)
+>
+> `[ Отмена ]` `[ Подтвердить и запустить ]`
+
+---
+
+## 7. Преимущества Архитектуры
+
+1.  **Доверие:** Пользователь точно знает, какой плагин "лезет" в сеть.
+2.  **Безопасность Обновлений:** Если новая версия плагина добавит разрешение `storage.delete`, Ядро снова переведет его в `PENDING_AUDIT`.
+3.  **Тонкое Ядро:** Вся логика проверок — это простой match строк по списку правил.
