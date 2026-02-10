@@ -8,6 +8,7 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field, ValidationError
 from core.sdk import PluginBase, PluginContext
 from core.database_manager import db_manager, PluginDatabaseContext
+from core.config import settings
 
 logger = logging.getLogger(__name__)
 
@@ -22,7 +23,7 @@ class PluginManifest(BaseModel):
     entry_point: str = "backend.py"  # Default entry point file
 
 class PluginLoader:
-    def __init__(self, plugin_dir: str = "plugins"):
+    def __init__(self, plugin_dir: str = settings.PLUGIN_DIR):
         self.plugin_dir = plugin_dir
         self.manifests: Dict[str, PluginManifest] = {}
         self.loaded_plugins: Dict[str, PluginBase] = {}

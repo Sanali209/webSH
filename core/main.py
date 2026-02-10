@@ -1,4 +1,3 @@
-import logging
 import os
 from typing import Callable, Any
 from fastapi import FastAPI, Request, Response
@@ -8,18 +7,22 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.responses import JSONResponse
 from fastapi import WebSocket, WebSocketDisconnect
 from contextlib import asynccontextmanager
+from loguru import logger
+
 from core.events import event_bus
 from core.plugin_manager import PluginLoader
 from core.middleware import SandboxMiddleware
 from core.migrations import migration_manager
 from core.broker import broker
 from core.health import HealthCheckService
+from core.config import settings
+from core.logging_config import setup_logging
 
-# Initialize logger
-logger = logging.getLogger(__name__)
+# Initialize Logging
+setup_logging()
 
-# Initialize plugin loader globally
-plugin_loader = PluginLoader()
+# Initialize plugin loader globally (Singleton pattern for now, but configured via settings)
+plugin_loader = PluginLoader(plugin_dir=settings.PLUGIN_DIR)
 
 # Initialize Health Check Service
 health_service = HealthCheckService(plugin_loader)
@@ -27,7 +30,7 @@ health_service = HealthCheckService(plugin_loader)
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Startup
-    logger.info("PC Center starting up...")
+    logger.info(f"{settings.APP_NAME} v{settings.APP_VERSION} starting up...")
 
     # Start Taskiq Broker
     if not broker.is_worker_process:
@@ -52,7 +55,7 @@ async def lifespan(app: FastAPI):
 
     yield
     # Shutdown
-    logger.info("PC Center shutting down...")
+    logger.info(f"{settings.APP_NAME} shutting down...")
 
     # Shutdown Taskiq Broker
     if not broker.is_worker_process:
@@ -63,9 +66,9 @@ async def lifespan(app: FastAPI):
         plugin.on_deactivate()
 
 app = FastAPI(
-    title="PC Center",
+    title=settings.APP_NAME,
     description="A modular local 'Web OS' application.",
-    version="0.1.0",
+    version=settings.APP_VERSION,
     lifespan=lifespan
 )
 
@@ -73,7 +76,7 @@ app.add_middleware(SandboxMiddleware)
 
 @app.get("/api/status")
 async def status():
-    return {"status": "ok"}
+    return {"status": "ok", "version": settings.APP_VERSION}
 
 @app.get("/api/health")
 async def health_check():
@@ -114,14 +117,18 @@ async def serve_gui(full_path: str):
     if full_path.startswith("api"):
         return JSONResponse(status_code=404, content={"error": "Not Found"})
 
-    return FileResponse("dist/index.html")
+    # Fallback to index.html for SPA routing
+    index_path = os.path.join(settings.STATIC_DIR, "index.html")
+    if os.path.exists(index_path):
+         return FileResponse(index_path)
+    return JSONResponse(status_code=404, content={"error": "Frontend not found"})
 
 # Note: Generic /plugins mount removed for security (prevent backend code exposure).
 # Specific plugin UI directories are mounted by PluginLoader.
 
 # Mount Frontend Static Files
-if os.path.exists("dist"):
-    app.mount("/assets", StaticFiles(directory="dist/assets"), name="assets")
+if os.path.exists(settings.STATIC_DIR):
+    app.mount("/assets", StaticFiles(directory=f"{settings.STATIC_DIR}/assets"), name="assets")
 
     # Catch-all for SPA routing
     app.add_api_route("/{full_path:path}", serve_gui, methods=["GET"])

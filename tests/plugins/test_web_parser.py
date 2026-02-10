@@ -113,12 +113,15 @@ class TestWebCrawler:
     async def test_fetch_url_success(self):
         """Test successful URL fetching."""
         settings = WebParserSettings()
+        print(f"DEBUG: max_content_length type: {type(settings.max_content_length)}")
+        print(f"DEBUG: max_content_length value: {settings.max_content_length}")
         crawler = WebCrawler(settings)
         
         # Mock httpx client
         mock_response = Mock()
         mock_response.text = SAMPLE_HTML
         mock_response.content = SAMPLE_HTML.encode()
+        mock_response.is_redirect = False
         mock_response.raise_for_status = Mock()
         
         mock_client = AsyncMock()
