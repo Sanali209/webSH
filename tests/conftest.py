@@ -56,3 +56,23 @@ try:
 except ImportError:
     fastapi_mock = MagicMock()
     sys.modules["fastapi"] = fastapi_mock
+
+# Mock watchdog if missing
+try:
+    import watchdog
+except ImportError:
+    watchdog_mock = MagicMock()
+    sys.modules["watchdog"] = watchdog_mock
+
+    events_mock = MagicMock()
+    sys.modules["watchdog.events"] = events_mock
+    watchdog_mock.events = events_mock
+
+    class MockFileSystemEventHandler:
+        pass
+
+    events_mock.FileSystemEventHandler = MockFileSystemEventHandler
+
+    observers_mock = MagicMock()
+    sys.modules["watchdog.observers"] = observers_mock
+    watchdog_mock.observers = observers_mock

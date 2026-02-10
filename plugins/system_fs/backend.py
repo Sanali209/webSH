@@ -1,50 +1,42 @@
 import os
-import hashlib
-import mimetypes
 import logging
-import time
-from typing import List, Dict, Any, Optional
-from datetime import datetime
-from fastapi import APIRouter, HTTPException
+import mimetypes
+from typing import Optional
 
+from fastapi import APIRouter, HTTPException
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 
 from core.sdk import PluginBase, PluginContext
 from .config import FSSettings
+from .services import FileService, DatabaseService
 
 logger = logging.getLogger(__name__)
 
 class FSHandler(FileSystemEventHandler):
     def __init__(self, context: PluginContext, settings: FSSettings):
-        self.context = context
-        self.settings = settings
-        self.core_table = context.db.get_core_table()
+        self.file_service = FileService(settings)
+        self.db_service = DatabaseService(context)
 
-    def _should_ignore(self, path: str) -> bool:
-        """Check if path should be ignored based on settings."""
-        parts = path.split(os.sep)
-        for part in parts:
-            if part in self.settings.excluded_dirs:
-                return True
-            if part.startswith("."): # Ignore hidden files/dirs by default for now
-                return True
-        return False
+    def on_created(self, event):
+        if not event.is_directory:
+            self._process_file(event.src_path)
 
-    def _calculate_hash(self, filepath: str) -> str:
-        """Calculate SHA256 hash of file content."""
-        sha256_hash = hashlib.sha256()
-        try:
-            with open(filepath, "rb") as f:
-                # Read in chunks to avoid memory issues
-                for byte_block in iter(lambda: f.read(4096), b""):
-                    sha256_hash.update(byte_block)
-            return sha256_hash.hexdigest()
-        except (PermissionError, FileNotFoundError):
-            return ""
+    def on_modified(self, event):
+        if not event.is_directory:
+            self._process_file(event.src_path)
 
-    def _update_db(self, filepath: str):
-        if self._should_ignore(filepath):
+    def on_deleted(self, event):
+        if not event.is_directory:
+            self.db_service.delete_file(event.src_path)
+
+    def on_moved(self, event):
+        if not event.is_directory:
+            self.db_service.delete_file(event.src_path)
+            self._process_file(event.dest_path)
+
+    def _process_file(self, filepath: str):
+        if self.file_service.should_ignore(filepath):
             return
 
         if not os.path.isfile(filepath):
@@ -53,66 +45,16 @@ class FSHandler(FileSystemEventHandler):
         try:
             stat = os.stat(filepath)
             size = stat.st_size
-            mime_type, _ = mimetypes.guess_type(filepath)
-            entity_id = self._calculate_hash(filepath)
+            mime_type = mimetypes.guess_type(filepath)[0]
+            entity_id = self.file_service.calculate_hash(filepath)
 
             if not entity_id:
                 return
 
-            data = [{
-                "entity_id": entity_id,
-                "path": filepath,
-                "filename": os.path.basename(filepath),
-                "size": size,
-                "mime_type": mime_type,
-                "tags": [],
-                "last_indexed": datetime.now()
-            }]
-
-            # Upsert logic: LanceDB merge_insert is available in newer versions,
-            # but standard 'add' appends. We might need to delete existing first?
-            # Or use 'merge_insert' if available.
-            # Assuming 'add' for now, duplicates handled by query or cleanup?
-            # Actually, standard practice with LanceDB is append-only + cleanup or merge.
-            # Let's try to delete existing by path first if possible, or just append.
-            # Since 'entity_id' is PK in schema? No, LanceDB doesn't enforce PK constraint on 'add'.
-            # But we want to avoid duplicates.
-            # Let's try to delete by path first.
-            try:
-                self.core_table.delete(f"path = '{filepath}'")
-            except Exception as e:
-                logger.warning(f"Failed to delete existing entry for {filepath}: {e}")
-
-            self.core_table.add(data)
-            logger.info(f"Indexed file: {filepath}")
+            self.db_service.upsert_file(filepath, entity_id, size, mime_type)
 
         except Exception as e:
             logger.error(f"Error processing file {filepath}: {e}")
-
-    def _delete_from_db(self, filepath: str):
-        try:
-            self.core_table.delete(f"path = '{filepath}'")
-            logger.info(f"Removed file from index: {filepath}")
-        except Exception as e:
-            logger.error(f"Error removing file {filepath}: {e}")
-
-    def on_created(self, event):
-        if not event.is_directory:
-            self._update_db(event.src_path)
-
-    def on_modified(self, event):
-        if not event.is_directory:
-            self._update_db(event.src_path)
-
-    def on_deleted(self, event):
-        if not event.is_directory:
-            self._delete_from_db(event.src_path)
-
-    def on_moved(self, event):
-        if not event.is_directory:
-            self._delete_from_db(event.src_path)
-            self._update_db(event.dest_path)
-
 
 class SystemFSPlugin(PluginBase):
     def __init__(self):
