@@ -1,4 +1,5 @@
 """Resource Controller Plugin Backend - Monitor and manage system resources."""
+import asyncio
 import logging
 import psutil
 import time
@@ -161,8 +162,11 @@ class ResourceControllerPlugin(PluginBase):
                 return {"error": "Resource monitor not initialized"}
             
             # Get system-wide usage
-            system_usage = self.monitor.get_system_usage()
-            process_usage = self.monitor.get_process_usage()
+            # Run blocking psutil calls in a thread pool
+            system_usage, process_usage = await asyncio.gather(
+                asyncio.to_thread(self.monitor.get_system_usage),
+                asyncio.to_thread(self.monitor.get_process_usage)
+            )
             
             # Get per-plugin usage
             plugin_usage = {
