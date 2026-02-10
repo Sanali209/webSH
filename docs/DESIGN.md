@@ -1,111 +1,141 @@
-# Design Document: PC Center OS (v13.0)
+# Design Document: PC Center OS (v14.0 - Unified Architecture)
 
-Этот документ описывает архитектуру **PC Center** — отказоустойчивой, модульной «Web OS» для локальной автоматизации, управления файлами и работы с LLM.
+Этот документ описывает полную архитектуру **PC Center** — отказоустойчивой, модульной «Web OS» для локальной автоматизации, управления файлами и работы с LLM.
 
-> **Революция Архитектуры (v13.0):** Реализация **"Security Audit & Consent" (Аудит и Согласие)**. Механизм автоматического анализа манифестов, категоризации рисков и интерактивного подтверждения пользователем.
-
----
-
-## 1. Философия: Доверие и Контроль
-
-Вместо жесткой песочницы используется декларативная безопасность. Плагин «признается» в намерениях через манифест, а пользователь их одобряет.
-*   **Автоматический Аудит:** При установке плагин анализируется на наличие опасных разрешений.
-*   **Управление Согласием:** Пользователь видит понятный отчет о рисках перед активацией.
-*   **runtime-проверка:** Ядро блокирует любые действия плагина, пока он не перейдет в статус `ACTIVE`.
+> **Унифицированная Архитектура (v14.0):** Синтез моделей **"Single Process"**, **"Reactive Broker"** и **"Security Barrier"**. Система представляет собой ультратонкое ядро на базе FastAPI, которое управляет жизненным циклом плагинов и маршрутизацией сигналов, обеспечивая безопасность через механизм Аудита и Согласия.
 
 ---
 
-## 2. Процесс Установки (Installation Flow)
+## 1. Концепция: Single Process Kernel
 
-Когда плагин появляется в системе, он не активен сразу.
+В отличие от традиционных микросервисных архитектур, PC Center запускается как **Единый Процесс** (Monolithic Runtime with Logical Isolation).
 
-1.  **Сканирование:** Ядро читает `manifest.json`.
-2.  **Статус PENDING_AUDIT:** Плагин загружен, но его сигналы блокируются Switchboard.
-3.  **Генерация Отчета:** Сервис `SecurityAuditor` сопоставляет права с уровнями риска.
-4.  **Вердикт Пользователя:** В Шелле появляется окно аудита. Только после нажатия "Принять" плагин становится `ACTIVE`.
-
----
-
-## 3. Категоризация Рисков (Risk Levels)
-
-| Уровень | Цвет | Домены (Примеры) | Действие системы |
-|---|---|---|---|
-| **Low** | 🟢 | `ui.slot.*`, `theme.change` | Разрешено автоматически. |
-| **Medium** | 🟡 | `storage.read`, `ai.summarize` | Упоминается в отчете. |
-| **High** | 🟠 | `network.request`, `storage.write` | Требует явного "Ок" при установке. |
-| **Critical** | 🔴 | `os.execute`, `storage.delete` | Требует повторного подтверждения. |
+*   **FastAPI как Контент-Менеджер:** Служит единой точкой входа (Port 8000) для API, основного UI (Shell) и статики плагинов.
+*   **Zero CORS:** Фронтенд и бэкенд живут на одном домене, устраняя сетевые задержки и сложности настройки.
+*   **Атомарность:** Плагин — это папка. Загрузка происходит мгновенно при старте ядра.
 
 ---
 
-## 4. Реализация Аудитора (Backend Logic)
+## 2. Архитектура Ядра (The Core)
 
-Сервис анализирует манифест и возвращает JSON-отчет для UI.
+Ядро состоит из трех функциональных слоев:
 
-```python
-class SecurityAuditor:
-    SENSITIVE_DOMAINS = {
-        "storage.delete": "Критический: Удаление ваших данных",
-        "network.request": "Высокий: Отправка данных на внешние сервера",
-        "os.execute": "Критический: Запуск системных команд",
+### 2.1. Loader (Загрузчик)
+Отвечает за динамическую загрузку кода и статики.
+*   **Backend:** Ищет `backend.py` в папках плагинов и загружает их в память через `importlib`.
+*   **Frontend:** Монтирует папки `/ui` плагинов как статические пути FastAPI (`/plugins/{id}/ui`).
+
+### 2.2. Registry (Реестр Способностей)
+База данных доступных функций. Хранит не код, а метаданные:
+*   **Capabilities:** Что плагин умеет (например, `ai.summarize`).
+*   **Schemas:** Pydantic-схемы входных и выходных данных для валидации.
+
+### 2.3. Switchboard (Реактивный Диспетчер)
+Умный маршрутизатор сообщений.
+*   **Broker Logic:** Принимает сигнал -> Валидирует схему -> Проверяет права -> Вызывает функцию.
+*   **Hybrid Transport:**
+    *   *Local:* Прямой вызов Python-функции (Zero-latency).
+    *   *Remote:* Проксирование HTTP-запроса в Docker-контейнер (для внешних микросервисов).
+
+---
+
+## 3. Протоколы Взаимодействия
+
+### 3.1. Handshake Protocol (Регистрация)
+При старте плагин отправляет **Manifest Payload**:
+
+```json
+{
+  "id": "task_tracker",
+  "type": "local",
+  "version": "1.0.0",
+  "capabilities": [
+    {
+      "domain": "core.task.create",
+      "input_schema": { ...json_schema... }
     }
+  ],
+  "integrations": {
+    "slots": [ { "id": "ui.sidebar", "component": "Icon.js" } ]
+  },
+  "permissions": ["storage.read", "ui.notify"]
+}
+```
 
-    def generate_report(self, manifest: dict) -> dict:
-        permissions = manifest.get("permissions", [])
-        report = {"plugin_id": manifest["id"], "risks": [], "is_safe": True}
+### 3.2. Signal Protocol (Обмен данными)
+Все взаимодействие происходит через унифицированный API:
 
-        for perm in permissions:
-            if perm in self.SENSITIVE_DOMAINS:
-                risk_level = "high" if "delete" in perm or "network" in perm else "critical"
-                report["risks"].append({
-                    "scope": perm,
-                    "description": self.SENSITIVE_DOMAINS[perm],
-                    "level": risk_level
-                })
-                report["is_safe"] = False
-
-        return report
+`POST /api/v1/call`
+```json
+{
+  "domain": "core.task.create",
+  "params": { "title": "Buy milk" },
+  "context": { "caller_id": "shell" }
+}
 ```
 
 ---
 
-## 5. Runtime Проверка (Switchboard Barrier)
+## 4. Frontend: Pluggable Shell
 
-Диспетчер (Switchboard) при каждом вызове проверяет статус аудита.
+Пользовательский интерфейс строится по принципу **"Intent Registry"**. Шелл не знает о плагинах, он знает только о Слотах.
 
-```python
-async def call(self, caller_id: str, domain: str, params: dict):
-    # 1. Проверяем статус аудита (SQLite)
-    if not self.config_db.is_plugin_active(caller_id):
-        raise PermissionError(f"Plugin {caller_id} is pending audit or disabled.")
+### 4.1. Система Слотов
+1.  **Shell:** Объявляет слоты (`sidebar`, `tray`, `dashboard`).
+2.  **Plugin:** Заявляет `ui_extensions` в манифесте.
+3.  **Kernel:** Отдает Шеллу список скриптов для загрузки через `GET /api/v1/ui/extensions`.
 
-    # 2. Проверяем разрешения (Security Barrier)
-    if not self.barrier.verify(caller_id, domain):
-        raise PermissionError(f"Access to {domain} denied by policy.")
+### 4.2. Динамический Импорт
+Шелл использует Native ES Modules для загрузки компонентов плагинов без пересборки.
 
-    # 3. Исполняем вызов
-    provider = self.registry.find_provider(domain)
-    return await provider.execute(params)
+```javascript
+// Shell (Svelte)
+const module = await import(`/plugins/${pluginId}/ui/widget.js`);
 ```
 
----
-
-## 6. Интерфейс Аудита (UI Shell)
-
-Шелл отображает пользователю не JSON, а понятные предупреждения:
-
-> **Установка плагина "Web Scraper Pro"**
->
-> Этот плагин запрашивает следующие разрешения:
-> *   🟢 Доступ к боковой панели (UI)
-> *   🟠 Чтение файлов в папке /Downloads (Storage)
-> *   🟠 Доступ к сети интернет (Network)
->
-> `[ Отмена ]` `[ Подтвердить и запустить ]`
+### 4.3. View Manager
+Плагины не могут создавать окна сами. Они отправляют сигнал `ui.view.open`, и Шелл открывает соответствующий компонент в новой вкладке или модальном окне.
 
 ---
 
-## 7. Преимущества Архитектуры
+## 5. Безопасность: Audit & Consent
 
-1.  **Доверие:** Пользователь точно знает, какой плагин "лезет" в сеть.
-2.  **Безопасность Обновлений:** Если новая версия плагина добавит разрешение `storage.delete`, Ядро снова переведет его в `PENDING_AUDIT`.
-3.  **Тонкое Ядро:** Вся логика проверок — это простой match строк по списку правил.
+В условиях отсутствия песочницы (Sandbox), безопасность обеспечивается декларативным контролем.
+
+### 5.1. Установка и Аудит
+1.  Новый плагин получает статус `PENDING_AUDIT`.
+2.  **SecurityAuditor** анализирует манифест и классифицирует риски:
+    *   🟢 **Low:** UI, Theme (Разрешено).
+    *   🟠 **High:** Network, Storage Write (Требует согласия).
+    *   🔴 **Critical:** OS Execute, File Delete (Требует подтверждения).
+3.  Пользователь должен явно принять риски в UI перед активацией.
+
+### 5.2. Runtime Barrier (Перехватчик)
+`Switchboard` блокирует вызовы, если:
+*   Плагин не имеет статуса `ACTIVE`.
+*   Плагин пытается вызвать домен, не указанный в `permissions` манифеста.
+*   Отсутствует валидный `X-Plugin-Token` (защита от CSRF/XSS со стороны фронтенда).
+
+---
+
+## 6. Реализация (Reference Implementation)
+
+```text
+/pc_center
+├── main.py              # FastAPI, Loader, Switchboard
+├── /core
+│   ├── broker.py        # Logic: Discovery, Validation, Dispatch
+│   ├── security.py      # Logic: Audit, Barrier
+├── /plugins             # User Plugins
+│   └── /demo_plugin
+│       ├── manifest.json
+│       ├── backend.py   # Python Code (Loaded by importlib)
+│       └── /ui          # JS Code (Served by StaticFiles)
+```
+
+**Workflow:**
+1.  `python main.py` запускает сервер.
+2.  `Loader` сканирует `/plugins`, импортирует `backend.py`, регистрирует Capabilities.
+3.  `FastAPI` монтирует `/plugins/.../ui` как статику.
+4.  Пользователь открывает `localhost:8000`.
+5.  Shell загружается, запрашивает расширения и рендерит рабочий стол.
