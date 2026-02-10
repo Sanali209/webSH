@@ -1,166 +1,112 @@
-# Design Document: PC Center OS (v5.0)
+# Design Document: PC Center OS (v6.0)
 
 Этот документ описывает архитектуру **PC Center** — отказоустойчивой, модульной «Web OS» для локальной автоматизации, управления файлами и работы с LLM.
 
-> **Революция Архитектуры (v5.0):** Переход на модель **"Broker / Switchboard" (Брокер / Коммутатор)**. Ядро перестает быть операционной системой и становится Диспетчером. Оно ничего не знает ни о UI, ни о файлах. Оно знает только о Контрактах и Маршрутах.
+> **Революция Архитектуры (v6.0):** Переход на модель **"Minimal Broker Core"**. Ядро — это абсолютно пустая «шина» (Switchboard), которая не владеет даже системой фоновых задач. Taskiq/Celery вынесены в `core.executor`.
 
 ---
 
-## 1. Философия: Ядро как Брокер
+## 1. Философия: Ядро как Диспетчер Сигналов
 
 Ядро выполняет только три функции:
 1.  **Registry (Реестр):** Хранит список того, кто что умеет (Capabilities) и куда можно встроиться (Integration Points).
 2.  **Broker (Брокер):** Передает вызовы (Call) и данные (Context) от потребителя к поставщику, проверяя типы (Pydantic).
 3.  **Loader (Загрузчик):** Запускает код плагинов (Python/JS) или регистрирует внешние микросервисы.
 
-**Desktop (Рабочий стол)** теперь — это просто один из плагинов с capability `ui.shell`. Вы можете заменить его на `ui.terminal` или `ui.voice_assistant`, не меняя ни строчки в ядре.
+**Фоновые задачи (Task System):** Теперь выполнение тяжелых задач — это не встроенная функция ядра, а внешний ресурс `core.executor`, на который другие плагины подписываются через Брокера.
 
 ---
 
-## 2. Capability System 2.0: Параметризация
+## 2. Архитектура Фоновых Вычислений (Executor as a Service)
 
-Теперь Capability — это не просто строка "ocr". Это объект с метаданными и схемой параметров.
-
-### 2.1. Регистрация Capability (со стороны Провайдера)
-Плагин объявляет свои возможности, описывая схемы входа и выхода.
+### 2.1. Регистрация Task-системы (Провайдер)
+Системный плагин (например, `system_taskiq`) регистрирует возможность выполнения задач.
 
 ```python
-# plugins/local_llm/main.py
+# plugins/system_taskiq/main.py
 from core.broker import Capability
 
-class LLMCapability(Capability):
-    domain = "ai.text_generation"
-    # Параметры, описывающие мощность этого провайдера
-    metadata = {
-        "model": "llama3-8b",
-        "speed": "fast",
-        "cost": 0.0
-    }
+class TaskiqCapability(Capability):
+    domain = "core.executor"
+    # Метаданные о мощностях
+    metadata = { "concurrency": 4, "queues": ["default", "heavy"] }
 
     class Input(BaseModel):
-        prompt: str
-        temperature: float = 0.7
+        plugin_id: str
+        function_name: str
+        args: dict
+        priority: str = "medium"
 
-    class Output(BaseModel):
-        text: str
-
-    async def execute(self, params: Input) -> Output:
-        return await run_llama(params.prompt)
+    async def execute(self, params: Input):
+        # Логика отправки задачи в воркер Taskiq
+        task = await broker_taskiq.send_task(
+            params.plugin_id,
+            params.function_name,
+            params.args
+        )
+        return {"task_id": task.id}
 ```
 
-### 2.2. Вызов Capability (со стороны Потребителя)
-Потребитель просит Ядро найти подходящий сервис, используя фильтрацию (Constraints).
+### 2.2. Заказ Исполнения (Потребитель)
+Плагины не знают про Taskiq. Они просто просят Ядро найти `core.executor`.
 
 ```python
-# plugins/task_tracker/logic.py
+# plugins/deduplicator/logic.py
 
-# Запрос с фильтрацией по параметрам!
-provider = await kernel.find_capability(
-    domain="ai.text_generation",
-    constraints={
-        "speed": "fast",     # Хочу быстрый
-        "cost": 0.0          # Хочу бесплатный
-    }
-)
+async def start_dedup(files):
+    # Запрашиваем у ядра исполнителя
+    executor = await kernel.find_capability(domain="core.executor")
 
-result = await provider.execute(prompt="Суммируй задачу...")
+    # Отправляем задачу
+    await executor.execute(
+        plugin_id="deduplicator",
+        function_name="process_files",
+        args={"files": files}
+    )
 ```
 
 ---
 
-## 3. UI как Плагин (The Shell Concept)
+## 3. Capability System 2.0: Параметризация
 
-Ядро при старте вообще не отдает HTML с интерфейсом. Оно отдает пустой `index.html` с маленьким загрузчиком (`bootstrap.js`).
-
-1.  **Загрузка:** `bootstrap.js` спрашивает у Ядра: `GET /api/core/shell`.
-2.  **Ядро:** Смотрит в конфиг, видит, что активный шелл — плагин `system_desktop_v2`.
-3.  **Ответ:** Ядро возвращает URL скрипта плагина: `/plugins/system_desktop_v2/ui/main.js`.
-4.  **Рендер:** Браузер загружает этот JS, и только тогда появляется рабочий стол.
-
-**Преимущества:**
-*   Разные интерфейсы для ПК, Планшета и Телефона (переключение плагина shell).
-*   Автоматический fallback на `safe_mode_shell` (консольный UI), если основной UI упал.
+Capability — это объект с метаданными и схемой параметров. Это позволяет гибко выбирать провайдеров (например, "быстрый LLM" или "бесплатный LLM").
 
 ---
 
-## 4. Динамические Точки Интеграции (Integration Points)
+## 4. UI как Плагин (The Shell Concept)
 
-Ядро не знает про существование "Сайдбара" или "Трея". Это знает Shell Plugin. Другие плагины инжектируются туда через брокер.
+Ядро при старте отдает пустой `index.html`. `bootstrap.js` запрашивает `/api/core/shell`, и Ядро перенаправляет на активный плагин-оболочку (например, `system_desktop_v2`).
 
-1.  **Shell Plugin регистрирует Slot:**
-    ```python
-    kernel.register_slot(
-        slot_id="desktop.sidebar",
-        schema=SidebarItemSchema # Pydantic-модель иконки
-    )
-    ```
-
-2.  **User Plugin (TaskTracker) отправляет Injection Request:**
-    ```python
-    kernel.inject(
-        slot_id="desktop.sidebar",
-        data=SidebarItemSchema(icon="check", action="open_tasks")
-    )
-    ```
-
-3.  **Ядро:** Проверяет валидность `SidebarItemSchema` и пересылает данные в Shell Plugin.
-4.  **Shell Plugin:** Реактивно отрисовывает новую иконку.
+*   **Integration Points:** Плагины инжектируются в UI через слоты, регистрируемые Shell-плагином.
 
 ---
 
 ## 5. Микросервисы как Capabilities
 
-Ядро умеет работать с внешними Docker-контейнерами (например, тяжелый Stable Diffusion) так же, как с Python-функциями.
-
-### 5.1. Регистрация через API
-Микросервис при старте стучится в Ядро:
-
-```http
-POST /api/core/capabilities/register
-{
-  "domain": "ai.image_gen",
-  "provider_id": "remote_sd_xl",
-  "metadata": { "gpu": true, "version": "xl" },
-  "transport": "http",
-  "endpoint": "http://localhost:7860/generate",
-  "input_schema": { ... },
-  "output_schema": { ... }
-}
-```
-
-### 5.2. Проксирование Ядром
-Когда плагин вызывает `ai.image_gen`:
-1.  Ядро видит, что провайдер — это HTTP Microservice.
-2.  Ядро валидирует входные данные (Pydantic).
-3.  Ядро само делает HTTP-запрос на `http://localhost:7860/generate`.
-4.  Ядро возвращает результат вызывающему плагину.
-
-**Итог:** Ваш Python-плагин вызывает генерацию картинки и не знает, кто её сделал: локальная функция или удаленный сервер.
+Ядро умеет работать с внешними Docker-контейнерами. Они регистрируются как Capabilities, и Ядро проксирует вызовы к ним. Это позволяет выносить тяжелые вычисления (AI, GPU) на другие машины.
 
 ---
 
-## 6. Итоговая Структура Ядра (The Broker Kernel)
+## 6. Итоговая Структура Ядра (The Ultra-Thin Kernel)
 
-```text
-/core
-├── broker.py          # Маршрутизация вызовов, поиск Capability
-├── registry.py        # Хранение метаданных (кто, где, какие параметры)
-├── injection.py       # Управление слотами (Integration Points)
-├── proxy.py           # Адаптер для HTTP микросервисов
-└── loader.py          # Запуск локальных Python-плагинов
-```
+Ядро — это "умный коммутатор".
 
-### Пример потока данных (Data Flow)
-1.  **Plugin A (Shell):** "Я рисую рабочий стол. У меня есть слот `widget_area`."
-2.  **Plugin B (Clock):** "Я умею показывать время. Я инжектируюсь в `widget_area`."
-3.  **Plugin C (Voice):** "Я микросервис (Docker). Я регистрирую capability `audio.transcribe`."
-4.  **Plugin D (Notes):** "Пользователь нажал 'Диктовать'. Ядро, дай мне кто-нибудь с `audio.transcribe`!"
-5.  **Ядро:** "Ок, вот Plugin C. Я проксирую твой аудио-поток к нему."
+### 6.1. Состав Системы
+1.  **Kernel (The Switchboard):** Реестр ссылок и валидатор Pydantic-пакетов.
+2.  **System Plugin `storage`:** Реализует Capability `data.access` (LanceDB/SQLite).
+3.  **System Plugin `executor`:** Реализует Capability `core.executor` (Taskiq).
+4.  **System Plugin `shell`:** Реализует Capability `ui.shell` (Рабочий стол).
+5.  **System Plugin `auth`:** Реализует Capability `core.identity`.
 
-### Главное преимущество
-Вы полностью развязали руки.
-*   Хотите сменить базу данных? Напишите плагин `db_postgres`, который реализует capability `storage.vector`.
-*   Хотите переписать UI на React? Напишите плагин `react_shell`.
-*   Хотите добавить интеграцию с Home Assistant? Зарегистрируйте его как внешний микросервис.
+### 6.2. Обработка Результатов (Callback Pattern)
+Если Task-система вынесена в плагин, результат возвращается через события:
+1.  Плагин-исполнитель заканчивает задачу.
+2.  Он кидает в общую шину Ядра событие `task.finished` с `correlation_id`.
+3.  Плагин-заказчик подхватывает результат.
 
-Ядро останется неизменным — ~300 строк кода, перекладывающего JSON и Pydantic объекты.
+### 6.3. Преимущества
+*   **Свобода технологий:** Замените Taskiq на Celery или Ray без изменения кода плагинов.
+*   **Распределенность:** Ядро на ноутбуке, Executor на сервере с GPU.
+*   **Микросервисность:** Executor может быть внешним Docker-контейнером.
+
+Ядро теперь полностью развязано с реализацией и занимается только маршрутизацией.
