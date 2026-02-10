@@ -1,1 +1,0 @@
-"""Resource Controller Plugin."""
