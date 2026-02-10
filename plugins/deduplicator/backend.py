@@ -386,29 +386,28 @@ class DeduplicatorPlugin(PluginBase):
         Returns:
             List of duplicate groups
         """
-        # Group files by hash value
-        hash_groups: Dict[str, Dict[str, Set[str]]] = defaultdict(lambda: defaultdict(set))
+        # Group files by (hash_type, hash_value)
+        groups = defaultdict(list)
         
         for file_path, hashes in self._hash_db.items():
             for hash_type, hash_value in hashes.items():
-                hash_groups[hash_type][hash_value].add(file_path)
+                groups[(hash_type, hash_value)].append(file_path)
         
-        # Find groups with more than one file
+        # Create DuplicateGroup objects for groups with > 1 file
         duplicate_groups = []
         
-        for hash_type, hash_dict in hash_groups.items():
-            for hash_value, files in hash_dict.items():
-                if len(files) > 1:
-                    # Get file size (should be same for all)
-                    file_size = self._file_sizes.get(next(iter(files)), 0)
-                    
-                    duplicate_groups.append(DuplicateGroup(
-                        hash=hash_value,
-                        hash_type=hash_type,
-                        files=sorted(list(files)),
-                        file_size=file_size,
-                        count=len(files)
-                    ))
+        for (hash_type, hash_value), files in groups.items():
+            if len(files) > 1:
+                # Get file size from the first file in the group
+                file_size = self._file_sizes.get(files[0], 0)
+
+                duplicate_groups.append(DuplicateGroup(
+                    hash=hash_value,
+                    hash_type=hash_type,
+                    files=sorted(files),
+                    file_size=file_size,
+                    count=len(files)
+                ))
         
         return duplicate_groups
     

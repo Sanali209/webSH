@@ -50,6 +50,10 @@ except ImportError:
             self.__dict__.update(kwargs)
     pydantic_mock.BaseModel = MockBaseModel
 
+    def MockField(default=None, **kwargs):
+        return default
+    pydantic_mock.Field = MockField
+
 # Mock fastapi if missing
 try:
     import fastapi
