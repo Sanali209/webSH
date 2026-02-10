@@ -2,6 +2,7 @@ import logging
 import polars as pl
 from typing import List, Dict, Any, Optional
 from core.database_manager import db_manager
+from core.optimization import query_cache
 
 logger = logging.getLogger(__name__)
 
@@ -104,6 +105,13 @@ class HybridSearcher:
         """
         Main entry point for search.
         """
+        # Check cache
+        cache_key = (query, tuple(query_vector) if query_vector else None, tuple(plugin_ids) if plugin_ids else None)
+        cached_result = query_cache.get(cache_key)
+        if cached_result:
+            logger.debug(f"Returning cached search results for query: {query}")
+            return cached_result
+
         text_df = self.search_text(query)
 
         vector_df = pl.DataFrame()
@@ -112,7 +120,12 @@ class HybridSearcher:
 
         final_df = self.reciprocal_rank_fusion(text_df, vector_df)
 
-        return final_df.to_dicts()
+        results = final_df.to_dicts()
+
+        # Update cache
+        query_cache.put(cache_key, results)
+
+        return results
 
 # Global instance
 search_orchestrator = HybridSearcher()

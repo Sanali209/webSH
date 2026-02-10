@@ -13,12 +13,16 @@ from core.plugin_manager import PluginLoader
 from core.middleware import SandboxMiddleware
 from core.migrations import migration_manager
 from core.broker import broker
+from core.health import HealthCheckService
 
 # Initialize logger
 logger = logging.getLogger(__name__)
 
 # Initialize plugin loader globally
 plugin_loader = PluginLoader()
+
+# Initialize Health Check Service
+health_service = HealthCheckService(plugin_loader)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -71,6 +75,16 @@ app.add_middleware(SandboxMiddleware)
 async def status():
     return {"status": "ok"}
 
+@app.get("/api/health")
+async def health_check():
+    """
+    Returns the health status of all system components.
+    """
+    status = await health_service.check_all()
+    if status["status"] == "error":
+        return JSONResponse(status_code=503, content=status)
+    return status
+
 @app.websocket("/ws/events")
 async def websocket_endpoint(websocket: WebSocket):
     await event_bus.connect_websocket(websocket)
@@ -102,10 +116,8 @@ async def serve_gui(full_path: str):
 
     return FileResponse("dist/index.html")
 
-# Mount Plugin UI Static Files
-if os.path.exists("plugins"):
-    app.mount("/plugins", StaticFiles(directory="plugins"), name="plugins")
-    logger.info("Mounted plugin static files at /plugins")
+# Note: Generic /plugins mount removed for security (prevent backend code exposure).
+# Specific plugin UI directories are mounted by PluginLoader.
 
 # Mount Frontend Static Files
 if os.path.exists("dist"):

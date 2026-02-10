@@ -56,3 +56,30 @@ try:
 except ImportError:
     fastapi_mock = MagicMock()
     sys.modules["fastapi"] = fastapi_mock
+    sys.modules["fastapi.staticfiles"] = MagicMock()
+    sys.modules["fastapi.responses"] = MagicMock()
+    sys.modules["fastapi.middleware"] = MagicMock()
+    sys.modules["fastapi.middleware.cors"] = MagicMock()
+    sys.modules["fastapi.websockets"] = MagicMock()
+    sys.modules["fastapi.testclient"] = MagicMock()
+
+# Mock other dependencies
+for module in ["lancedb", "polars", "psutil", "httpx", "desktop_notifier", "starlette", "pyarrow", "bs4"]:
+    try:
+        __import__(module)
+    except ImportError:
+        sys.modules[module] = MagicMock()
+
+# Ensure starlette submodules are mocked if starlette is mocked
+if isinstance(sys.modules.get("starlette"), MagicMock):
+    sys.modules["starlette.middleware"] = MagicMock()
+    sys.modules["starlette.middleware.base"] = MagicMock()
+    sys.modules["starlette.responses"] = MagicMock()
+    sys.modules["starlette.status"] = MagicMock()
+
+try:
+    import watchdog
+except ImportError:
+    sys.modules["watchdog"] = MagicMock()
+    sys.modules["watchdog.observers"] = MagicMock()
+    sys.modules["watchdog.events"] = MagicMock()

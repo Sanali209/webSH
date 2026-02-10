@@ -3,6 +3,9 @@
   import { moduleLoader } from '$lib/core/module_loader';
   import SlotManager from '$lib/core/SlotManager.svelte';
   import FileExplorer from '$lib/components/system_fs/FileExplorer.svelte';
+  import Toast from '$lib/components/notifications/Toast.svelte';
+  import ThemeSwitcher from '$lib/components/ThemeSwitcher.svelte';
+  import { connect as connectSocket } from '$lib/core/events';
 
   let initialized = false;
   let error = '';
@@ -11,6 +14,9 @@
 
   onMount(async () => {
     try {
+      // Connect to WebSocket
+      connectSocket();
+
       await moduleLoader.init();
       initialized = true;
       console.log('ModuleLoader initialized successfully');
@@ -55,6 +61,7 @@
     
     <!-- System Tray Slot - for plugin icons/widgets -->
     <div class="flex items-center gap-2">
+      <ThemeSwitcher />
       {#if initialized}
         <SlotManager slotName="system_tray" />
       {/if}
@@ -87,4 +94,6 @@
       <FileExplorer />
     {/if}
   </main>
+
+  <Toast />
 </div>
