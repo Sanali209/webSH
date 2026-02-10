@@ -86,6 +86,17 @@ def test_circular_dependency(tmp_path):
     with pytest.raises(ValueError, match="Circular dependency"):
         loader.resolve_dependencies()
 
+def test_missing_dependency(tmp_path):
+    """Verify missing dependency detection."""
+    plugin_dir = tmp_path / "plugins"
+    create_plugin(plugin_dir, "plugin_a", dependencies=["non_existent_plugin"])
+
+    loader = PluginLoader(plugin_dir=str(plugin_dir))
+    loader.scan_plugins()
+
+    with pytest.raises(ValueError, match="Missing dependency: non_existent_plugin"):
+        loader.resolve_dependencies()
+
 def test_load_plugin(tmp_path):
     """Verify plugin loading and instantiation."""
     plugin_dir = tmp_path / "plugins"
