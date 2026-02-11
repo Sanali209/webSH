@@ -1,0 +1,12 @@
+{
+    "id": "system_storage",
+    "version": "1.0.0",
+    "author": "Kernel",
+    "description": "LanceDB based vector and key-value storage provider",
+    "capabilities": [
+        "storage.get",
+        "storage.set",
+        "storage.search",
+        "storage.batch_insert"
+    ]
+}

@@ -1,0 +1,16 @@
+fastapi
+uvicorn[standard]
+rich
+loguru
+pydantic-settings
+redis
+opentelemetry-api
+opentelemetry-sdk
+opentelemetry-instrumentation-fastapi
+opentelemetry-exporter-otlp
+httpx
+pytest
+pytest-asyncio
+pluggy
+importlib-metadata
+orjson

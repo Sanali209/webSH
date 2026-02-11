@@ -1,0 +1,9 @@
+{
+    "id": "test_plugin",
+    "version": "1.0.0",
+    "author": "Antigravity",
+    "description": "A simple test plugin to verify the loader.",
+    "capabilities": [
+        "test.ping"
+    ]
+}

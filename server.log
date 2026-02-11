@@ -1,0 +1,12 @@
+INFO:     Started server process [19764]
+INFO:     Waiting for application startup.
+[32m2026-02-11 03:14:19.734[0m | [1mINFO    [0m | [36mcore.loader[0m:[36m_load_plugin[0m:[36m75[0m - [1mSuccessfully loaded plugin: test_plugin (v1.0.0)[0m
+[32m2026-02-11 03:14:19.734[0m | [1mINFO    [0m | [36mcore.registry[0m:[36mregister[0m:[36m19[0m - [1mRegistered capability: test.ping@1.0.0[0m
+[32m2026-02-11 03:14:19.734[0m | [1mINFO    [0m | [36mcore.loader[0m:[36mdiscover_and_load[0m:[36m37[0m - [1mPlugin initialization complete. Total: 1[0m
+[32m2026-02-11 03:14:19.757[0m | [1mINFO    [0m | [36m__main__[0m:[36mcheck_infrastructure[0m:[36m27[0m - [1mSuccessfully connected to Redis[0m
+[32m2026-02-11 03:14:19.757[0m | [1mINFO    [0m | [36m__main__[0m:[36mcheck_infrastructure[0m:[36m35[0m - [1mTracing initialized[0m
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:8001 (Press CTRL+C to quit)
+[32m2026-02-11 03:14:24.714[0m | [1mINFO    [0m | [36mcore.switchboard[0m:[36mdispatch[0m:[36m28[0m - [1mDispatching test.ping [CID: a3070782-6843-4f0e-9669-fbeee5190650][0m
+[32m2026-02-11 03:14:24.714[0m | [1mINFO    [0m | [36mtest_plugin[0m:[36mping[0m:[36m9[0m - [1mTest Plugin pinged with params: {'message': 'hello from curl'}[0m
+INFO:     127.0.0.1:56296 - "POST /api/v1/call HTTP/1.1" 200 OK
