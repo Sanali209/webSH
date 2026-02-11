@@ -90,16 +90,18 @@
 
 ### 5.2. System Executor (Task Manager)
 *   **Capability:** `core.execute`.
-*   **Технология:** **Taskiq** (ZeroMQ). Полная асинхронность и бесшовная интеграция с FastAPI.
-*   **Роль:** Принимает тяжелые задачи, выполняет их в фоне и бросает событие `task.finished`.
+*   **Технология:** **Taskiq** + **Redis** (Broker).
+*   **Entry Point:** `worker.py` (запускается отдельно).
+*   **Роль:** Принимает тяжелые задачи, выполняет их в фоне и бросает событие `task.finished` (обратный вызов в Kernel).
 
 ### 5.3. System Shell (Desktop UI)
 *   **Capability:** `ui.shell`, `ui.manager`, `ui.state`.
-*   **Технология:** Svelte (Compiled Static).
+*   **Технология:** Svelte 5 (Vite).
 *   **Центральные функции:**
     *   **5 Рабочих столов:** Переключаемые пространства.
     *   **Grid System:** Модель размещения виджетов и ярлыков на сетке.
-    *   **Dashboard Logic:** Оркестрация виджетов (размер которых заявляется плагинами).
+    *   **Slot Registry:** Динамическая инъекция компонентов (Sidebar, TopBar).
+    *   **Modal System:** Глобальный менеджер окон (`modal.svelte.js`) для плагинов (например, Inspector).
 *   **Роль:** Главный графический интерфейс. Предоставляет базовые слоты (`sidebar`, `tray`, `grid`), управляет окнами и хранит **Shared State Store** для реактивной синхронизации.
 
 ### 5.4. System FS Provider
@@ -108,9 +110,12 @@
 *   **Роль:** Единственный плагин с прямым доступом к диску. Сканирует файлы, индексирует их в Storage и мониторит изменения.
 
 ### 5.5. System Logger (The Auditor)
-*   **Capability:** `debug.trace`, `debug.log`.
+*   **Capability:** `core.log`.
 *   **Технология:** **Loguru** + **OpenTelemetry**.
-*   **Роль:** Сквозная трассировка сигналов. Подписывается на шину (`*.*`) и визуализирует граф вызовов и задержки (мс) в реальном времени с поддержкой `correlation_id`.
+*   **Integrations:**
+    *   **Loguru Sink:** Перехватывает логи и обогащает их `trace_id` из контекста.
+    *   **BroadcasterSpanProcessor:** Пересылает завершенные спаны (Spans) в реальном времени через WebSocket (`ws://kernel/api/v1/debug/stream`) для System Inspector.
+*   **Роль:** Сквозная трассировка сигналов. Подписывается на шину (`*.*`) и визуализирует граф вызовов.
 
 ---
 
@@ -160,20 +165,42 @@
 
 ```python
 class TaskPlugin(BasePlugin):
+    async def on_activate(self):
+        """Called upon plugin activation (async)."""
+        await self.connect_db()
+
+    async def on_deactivate(self):
+        """Called upon plugin deactivation (async)."""
+        await self.disconnect_db()
+
     @capability("tasks.create")
-    async def create(self, params: MySchema):
+    async def create(self, params: MySchema, context: Context):
         # Логика выполняется здесь
+        # Helper methods:
+        # await self.call("another.capability", {...})
+        # await self.emit("task.created", {...})
         return {"id": 1}
+
+    @on_event("user.login")
+    async def handle_login(self, event: Event):
+        # Реакция на событие
+        pass
 ```
 
 ---
 
-## 10. System Inspector
+## 10. System Inspector (UI Debugger)
 
-Встроенный инструмент отладки (`system.inspect`):
-*   **Signal Bus Tracker:** Живой лог всех сигналов.
-*   **Slot Map:** Визуализация того, какие плагины заняли какие места в интерфейсе.
-*   **Schema Schema:** Интерактивный список всех доступных в системе методов.
+Встроенный инструмент отладки (Plugin: `system_inspector`), доступный в Sidebar.
+
+### 10.1. Backend
+*   **WebSocket Stream:** `ws://kernel/api/v1/debug/stream`.
+*   **TraceBroadcaster:** Singleton, управляющий активными соединениями и рассылкой событий `system.trace`.
+
+### 10.2. Frontend
+*   **D3.js Graph:** Force-directed graph визуализирующий узлы (спаны/плагины) и связи (вызовы).
+*   **Interactive Modal:** Детальный просмотр JSON-схем сигналов при клике на узел.
+*   **Real-time:** Граф обновляется в реальном времени по мере поступления событий от `BroadcasterSpanProcessor`.
 
 ---
 

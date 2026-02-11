@@ -1,0 +1,8 @@
+{
+    "id": "system_executor",
+    "version": "1.0.0",
+    "description": "Background task executor using Taskiq and Redis",
+    "capabilities": [
+        "core.execute"
+    ]
+}

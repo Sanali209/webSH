@@ -2,6 +2,7 @@
   import Sidebar from "./components/layout/Sidebar.svelte";
   import TopBar from "./components/layout/TopBar.svelte";
   import Grid from "./components/desktop/Grid.svelte";
+  import ModalContainer from "./components/system/ModalContainer.svelte";
   import { appState, initSystem } from "./lib/store.svelte.js";
 
   $effect(() => {
@@ -10,6 +11,7 @@
 </script>
 
 <main class="app-container">
+  <ModalContainer />
   <Sidebar />
 
   <div class="content-wrapper">

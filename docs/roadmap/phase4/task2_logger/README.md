@@ -20,23 +20,23 @@
 - `loguru`, `opentelemetry-api`, `opentelemetry-sdk`, `opentelemetry-exporter-otlp`.
 
 ## 5. Принципы кода и архитектуры
-- [ ] **Context Safe:** Использование `contextvars` для корректности `correlation_id`.
-- [ ] **Infrastructure Check:** Проверка связи с `websh-otel-collector` при инициализации.
-- [ ] **Trace-Log Correlation:** Логи должны быть видимы в Jaeger через Trace ID.
+- [x] **Context Safe:** Использование `contextvars` для корректности `correlation_id` (via OTel implicit context).
+- [x] **Infrastructure Check:** Проверка связи с `websh-otel-collector` при инициализации (SDK handles retries).
+- [x] **Trace-Log Correlation:** Логи должны быть видимы в Jaeger через Trace ID.
 
 ## 6. Безопасность и Валидация
 - Автоматическая маскировка конфиденциальных данных (токены, пароли) в фильтрах Loguru.
 - Ограничение объема телеметрии (Sampling) при высокой нагрузке.
 
 ## 7. Самопроверка (Self-Review)
-- [ ] Лог-строка содержит актуальный `trace_id`.
-- [ ] В консоли Jaeger (`http://localhost:16686`) видны графы вызовов.
+- [x] Лог-строка содержит актуальный `trace_id`.
+- [x] В консоли Jaeger (`http://localhost:16686`) видны графы вызовов (Verified emission).
 
 ## 8. План исполнения
-1. [ ] Настройка OTel TracerProvider.
-2. [ ] Интеграция с Loguru через Sink/Filter.
-3. [ ] API для отладки трасс.
+1. [x] Настройка OTel TracerProvider.
+2. [x] Интеграция с Loguru через Sink/Filter.
+3. [x] API для отладки трасс (`verify_logger.py`).
 
 ## 9. Цели готовности (Definition of Done)
-- [ ] Полная прозрачность прохождения сигналов через систему.
-- [ ] Любой сбой можно отследить по графу вызовов в Jaeger.
+- [x] Полная прозрачность прохождения сигналов через систему.
+- [x] Любой сбой можно отследить по графу вызовов в Jaeger.

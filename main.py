@@ -39,18 +39,29 @@ async def lifespan(app: FastAPI):
     # Startup
     dashboard.update_status("Kernel", "Ready")
     
+    # Initialize Tracing
+    from core.tracing import setup_tracing
+    setup_tracing()
+    
     # Discovery and Load Plugins
     dashboard.update_status("Plugins", "Loading...")
     loader.discover_and_load()
     dashboard.update_status("Plugins", f"Loaded: {len(loader.loaded_plugins)}")
     
     await check_infrastructure()
+
+    # Start Executor Broker
+    from core.executor import broker
+    await broker.startup()
+    dashboard.update_status("Executor", "Started")
     
     yield
     
     # Shutdown
     if redis_client:
         await redis_client.close()
+    
+    await broker.shutdown()
     logger.info("Kernel shutdown complete")
 
 app = FastAPI(
@@ -96,6 +107,26 @@ async def websocket_endpoint(websocket: WebSocket):
             await websocket.send_text(f"Message text was: {data}")
     except Exception:
         pass
+
+from fastapi import WebSocketDisconnect
+from core.debug import broadcaster
+
+@app.websocket("/api/v1/debug/stream")
+async def debug_stream(websocket: WebSocket):
+    """
+    WebSocket endpoint for real-time system tracing.
+    """
+    await broadcaster.connect(websocket)
+    try:
+        while True:
+            # Keep connection open, maybe listen for client commands (filter, pause)
+            data = await websocket.receive_text()
+            # For now, we just ignore client messages or log them
+            pass
+    except WebSocketDisconnect:
+        broadcaster.disconnect(websocket)
+    except Exception:
+        broadcaster.disconnect(websocket)
 
 @app.get("/health")
 async def health_check():

@@ -1,0 +1,8 @@
+{
+    "id": "hello_world",
+    "version": "1.0.0",
+    "description": "SDK Verification Plugin",
+    "capabilities": [
+        "hello.ping"
+    ]
+}

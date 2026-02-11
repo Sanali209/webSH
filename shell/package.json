@@ -15,6 +15,8 @@
   },
   "dependencies": {
     "axios": "^1.13.5",
-    "lucide-svelte": "^0.563.0"
+    "lucide-svelte": "^0.563.0",
+    "d3": "^7.9.0",
+    "svelte-json-tree": "^2.2.0"
   }
 }

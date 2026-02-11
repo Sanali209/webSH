@@ -1,8 +1,10 @@
 <script>
     import { Activity } from "lucide-svelte";
+    import { openModal } from "../../lib/modal.svelte.js";
+    import InspectorView from "./InspectorView.svelte";
 
     const handleClick = () => {
-        alert("System Status: OK\nMemory: 100/1000 MB");
+        openModal(InspectorView, {}, "System Inspector");
     };
 </script>
 
