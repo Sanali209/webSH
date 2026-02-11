@@ -16,3 +16,20 @@ services:
     environment:
       - COLLECTOR_OTLP_ENABLED=true
     restart: always
+
+  app:
+    build: .
+    container_name: pc_center_core
+    ports:
+      - "7860:7860"
+    environment:
+      - REDIS_URL=redis://redis:6379/0
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://jaeger:4317
+      - HOST=0.0.0.0
+      - PORT=7860
+    volumes:
+      - ./plugins:/app/plugins
+    depends_on:
+      - redis
+      - jaeger
+    restart: always

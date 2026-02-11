@@ -17,3 +17,8 @@ orjson
 whitenoise
 secure
 a2wsgi
+imohash
+pyarrow
+watchdog
+lancedb
+pandas
