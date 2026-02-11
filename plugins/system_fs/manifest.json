@@ -1,0 +1,15 @@
+{
+    "id": "system_fs",
+    "version": "1.0.0",
+    "author": "Kernel",
+    "description": "Watchdog-based file system provider with safe path isolation",
+    "capabilities": [
+        "fs.list",
+        "fs.read",
+        "fs.write",
+        "fs.hash"
+    ],
+    "events": [
+        "fs.changed"
+    ]
+}

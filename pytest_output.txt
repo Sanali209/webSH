@@ -1,0 +1,97 @@
+============================= test session starts =============================
+platform win32 -- Python 3.11.9, pytest-9.0.2, pluggy-1.6.0 -- D:\github\webSH\venv\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: D:\github\webSH
+plugins: anyio-4.12.1, asyncio-1.3.0
+asyncio: mode=Mode.STRICT, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collecting ... collected 3 items
+
+tests/test_mmap_transport.py::test_transport_alloc_free PASSED           [ 33%]
+tests/test_mmap_transport.py::test_arrow_zero_copy FAILED                [ 66%]
+tests/test_mmap_transport.py::test_large_transfer_perf PASSED            [100%]D:\github\webSH\venv\Lib\site-packages\_pytest\unraisableexception.py:67: PytestUnraisableExceptionWarning: Exception ignored in: <function SharedMemory.__del__ at 0x000001ADDC9E3C40>
+
+Traceback (most recent call last):
+  File "C:\Users\sanal\AppData\Local\Programs\Python\Python311\Lib\multiprocessing\shared_memory.py", line 187, in __del__
+    self.close()
+  File "C:\Users\sanal\AppData\Local\Programs\Python\Python311\Lib\multiprocessing\shared_memory.py", line 230, in close
+    self._mmap.close()
+BufferError: cannot close exported pointers exist
+
+Enable tracemalloc to get traceback where the object was allocated.
+See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
+  warnings.warn(pytest.PytestUnraisableExceptionWarning(msg))
+
+
+================================== FAILURES ===================================
+____________________________ test_arrow_zero_copy _____________________________
+
+transport = <plugins.system_transport.backend.SystemTransportPlugin object at 0x000001ADDCD5B3D0>
+
+    @pytest.mark.asyncio
+    async def test_arrow_zero_copy(transport):
+        # 1. Create a large Arrow table
+        data = [
+            pa.array([i for i in range(100000)]),
+            pa.array([f"item_{i}" for i in range(100000)])
+        ]
+        table = pa.Table.from_arrays(data, names=["id", "name"])
+    
+        # 2. Calculate size needed for IPC
+        sink = pa.BufferOutputStream()
+        with ipc.new_file(sink, table.schema) as writer:
+            writer.write_table(table)
+        buf = sink.getvalue()
+        size = len(buf)
+    
+        # 3. Alloc shared memory
+        alloc_result = await transport.alloc(AllocParams(size=size), None)
+        shm_name = alloc_result["name"]
+    
+        # 4. Write to shared memory
+        shm = shared_memory.SharedMemory(name=shm_name)
+        data_to_write = buf.to_pybytes()
+    
+        # Use cast('B') to ensure flat byte structure for assignment
+        shm.buf[:size] = memoryview(data_to_write).cast('B')
+    
+        # 5. Read back from shared memory (Zero-copy)
+        # This simulates another plugin reading the memory
+        shm_consumer = shared_memory.SharedMemory(name=shm_name)
+    
+        # Create Arrow buffer directly from SHM memoryview
+        arrow_buf = pa.py_buffer(shm_consumer.buf[:size])
+    
+        # Open the table from the buffer
+        with ipc.open_file(arrow_buf) as reader:
+            read_table = reader.read_all()
+    
+        assert read_table.num_rows == 100000
+        assert read_table.column("id")[0].as_py() == 0
+    
+        # Cleanup
+        shm.close()
+>       shm_consumer.close()
+
+tests\test_mmap_transport.py:78: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = SharedMemory('wnsm_bd324072', size=2191360)
+
+    def close(self):
+        """Closes access to the shared memory from this instance but does
+        not destroy the shared memory block."""
+        if self._buf is not None:
+            self._buf.release()
+            self._buf = None
+        if self._mmap is not None:
+>           self._mmap.close()
+E           BufferError: cannot close exported pointers exist
+
+C:\Users\sanal\AppData\Local\Programs\Python\Python311\Lib\multiprocessing\shared_memory.py:230: BufferError
+---------------------------- Captured stderr call -----------------------------
+2026-02-11 03:45:16.872 | INFO     | plugins.system_transport.backend:alloc:30 - Allocated shared memory segment: wnsm_bd324072 (Size: 2189522)
+-------------------------- Captured stderr teardown ---------------------------
+2026-02-11 03:45:18.442 | DEBUG    | plugins.system_transport.backend:on_shutdown:71 - Cleanup: unlinked wnsm_bd324072
+=========================== short test summary info ===========================
+FAILED tests/test_mmap_transport.py::test_arrow_zero_copy - BufferError: cann...
+========================= 1 failed, 2 passed in 4.18s =========================

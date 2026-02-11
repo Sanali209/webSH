@@ -1,0 +1,10 @@
+{
+    "id": "system_transport",
+    "version": "1.0.0",
+    "author": "Kernel",
+    "description": "SharedMemory-based transport for Zero-copy data exchange",
+    "capabilities": [
+        "transport.alloc",
+        "transport.free"
+    ]
+}
