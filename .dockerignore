@@ -1,0 +1,13 @@
+node_modules
+venv
+__pycache__
+.git
+.idea
+.vscode
+*.pyc
+*.pyo
+coverage
+.coverage
+htmlcov
+dist
+build
