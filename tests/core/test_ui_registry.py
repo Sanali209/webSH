@@ -115,7 +115,7 @@ def test_loader_invalid_ui_manifest(temp_plugins_dir, clean_registry):
 def test_api_endpoint(clean_registry):
     # Manually register some data
     ui_data = {
-        "widgets": [{"id": "w1", "size": "1x1", "entry_point": "w1.svelte", "title": "API Button"}],
+        "widgets": [{"id": "w1", "size": "1x1", "entry_point": "w1.svelte", "title": "API Button", "type": "widget"}],
         "views": []
     }
     registry.register_ui_extension("api_plugin", ui_data)
@@ -123,5 +123,26 @@ def test_api_endpoint(clean_registry):
     response = client.get("/api/v1/registry/ui-extensions")
     assert response.status_code == 200
     data = response.json()
-    assert "api_plugin" in data
-    assert data["api_plugin"]["widgets"][0]["title"] == "API Button"
+
+    assert isinstance(data, list)
+    assert len(data) == 1
+    assert data[0]["plugin_id"] == "api_plugin"
+    assert data[0]["id"] == "w1"
+    assert data[0]["title"] == "API Button"
+    assert data[0]["type"] == "widget"
+
+def test_top_bar_registration(clean_registry):
+    ui_data = {
+        "top_bar": [{"id": "tb1", "entry_point": "tb.js", "type": "top_bar.item"}]
+    }
+
+    registry.register_ui_extension("tb_plugin", ui_data)
+
+    response = client.get("/api/v1/registry/ui-extensions")
+    assert response.status_code == 200
+    data = response.json()
+
+    assert len(data) == 1
+    assert data[0]["plugin_id"] == "tb_plugin"
+    assert data[0]["id"] == "tb1"
+    assert data[0]["type"] == "top_bar.item"

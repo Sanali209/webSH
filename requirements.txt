@@ -23,3 +23,5 @@ watchdog
 lancedb
 pandas
 packaging
+taskiq
+taskiq-redis
