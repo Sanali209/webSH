@@ -1,7 +1,14 @@
 from functools import wraps
-from typing import Callable, Any, Optional, Type
+from typing import Callable, Any, Optional, Type, Dict
 from pydantic import BaseModel
 from core.hooks import hookimpl
+
+class BaseSettings(BaseModel):
+    """
+    Base class for plugin settings.
+    Plugins should subclass this to define their settings schema.
+    """
+    pass
 
 class BasePlugin:
     """
@@ -10,6 +17,31 @@ class BasePlugin:
     """
     def __init__(self):
         self.name = self.__class__.__name__
+        self.id: Optional[str] = None  # Will be set by loader
+
+    def get_settings_model(self) -> Optional[Type[BaseModel]]:
+        """
+        Returns the Pydantic model for plugin settings.
+        Override this to provide a settings schema.
+        """
+        return None
+
+    def get_ui_manifest(self) -> Dict[str, Any]:
+        """
+        Returns the UI manifest dictionary.
+        Override this to provide UI definitions programmatically.
+        Keys: widgets, shortcuts, views.
+        """
+        return {}
+
+    def export_settings_schema(self) -> Dict[str, Any]:
+        """
+        Exports the settings schema as a JSON schema dictionary.
+        """
+        model = self.get_settings_model()
+        if model:
+            return model.model_json_schema()
+        return {}
 
     async def on_activate(self):
         """Called upon plugin activation."""
@@ -36,6 +68,11 @@ class BasePlugin:
                 # Register event handler with Switchboard
                 # TODO: Implement actual subscription to Switchboard
                 pass
+
+        # New: Register UI if provided
+        ui_manifest = self.get_ui_manifest()
+        if ui_manifest and self.id:
+            registry.register_ui_extension(self.id, ui_manifest)
 
         # Trigger activation lifecycle
         # Note: Since sh_plugin_init is synchronous in Pluggy, we schedule this

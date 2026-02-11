@@ -9,16 +9,16 @@
 
 ## Подзадачи
 
-1.  [ ] **Рефакторинг BasePlugin**
+1.  [x] **Рефакторинг BasePlugin**
     *   В `core/sdk.py`: Добавить методы `get_settings_model()` (Pydantic) и `get_ui_manifest()` (Dict).
     *   **get_settings_model:** Абстрактный метод (или базовый класс), возвращающий `BaseSettings`.
     *   **get_ui_manifest:** Метод, генерирующий словарь с ключами `widgets`, `shortcuts`, `views`.
     *   **Hooks:** Обеспечить интеграцию с хуками загрузки (Pluggy).
-2.  [ ] **Интеграция с Pydantic**
+2.  [x] **Интеграция с Pydantic**
     *   Использовать `pydantic.BaseModel` как основу для настроек.
     *   Написать хелпер `settings_to_schema(model: Type[BaseModel]) -> Dict` (используя `.model_json_schema()`).
     *   Добавить в SDK метод `export_settings_schema()`.
-3.  [ ] **Unit Tests**
+3.  [x] **Unit Tests**
     *   Создать тестовый плагин, наследующий `BasePlugin`.
     *   Реализовать валидацию метода `get_ui_manifest` (должен возвращать валидный UI словарь).
     *   Реализовать валидацию метода `get_settings_model`.
@@ -28,9 +28,9 @@
 *   **Unit:** Проверка генерации JSON Schema из настроек.
 
 ## Пункты самопроверки
-*   [ ] Плагин, наследующий BasePlugin, корректно загружается.
-*   [ ] Настройки плагина экспортируются в JSON Schema.
-*   [ ] UI манифест возвращается в ожидаемом формате.
+*   [x] Плагин, наследующий BasePlugin, корректно загружается.
+*   [x] Настройки плагина экспортируются в JSON Schema.
+*   [x] UI манифест возвращается в ожидаемом формате.
 
 ## Критерии выполнения (Definition of Done)
 1.  Базовый класс `BasePlugin` готов к использованию.
