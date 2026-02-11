@@ -25,6 +25,7 @@
     "axios": "^1.13.5",
     "d3": "^7.9.0",
     "lucide-svelte": "^0.563.0",
+    "penpal": "^7.0.4",
     "svelte-dnd-action": "^0.9.69",
     "svelte-json-tree": "^2.2.0"
   }
