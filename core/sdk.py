@@ -4,6 +4,8 @@ from pydantic import BaseModel
 from core.hooks import hookimpl
 from core.utils import settings_to_json_schema
 
+VERSION = "1.0.0"
+
 class BaseSettings(BaseModel):
     """
     Base class for plugin settings.

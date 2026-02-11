@@ -41,17 +41,17 @@ def create_plugin(directory, plugin_id, manifest_data, code_content="class P: pa
 def test_plugin_ui_validation():
     # Valid UI
     ui_data = {
-        "widgets": [{"id": "w1", "type": "button", "name": "My Button"}],
-        "views": [{"id": "v1", "type": "page", "name": "My Page", "path": "/mypage"}]
+        "widgets": [{"id": "w1", "size": "1x1", "entry_point": "w1.svelte", "title": "My Button"}],
+        "views": [{"id": "v1", "title": "My Page", "entry_point": "v1.svelte"}]
     }
     manifest = PluginManifest(id="test", ui=ui_data)
     assert manifest.ui.widgets[0].id == "w1"
-    assert manifest.ui.views[0].path == "/mypage"
+    assert manifest.ui.views[0].entry_point == "v1.svelte"
 
     # Invalid UI (missing required field in WidgetSchema)
-    # WidgetSchema: id, type, name are required
+    # WidgetSchema: id, size, entry_point, title are required
     bad_ui = {
-        "widgets": [{"id": "w1", "type": "button"}], # Missing name
+        "widgets": [{"id": "w1", "size": "1x1"}], # Missing title, entry_point
         "views": []
     }
     with pytest.raises(ValidationError):
@@ -59,20 +59,20 @@ def test_plugin_ui_validation():
 
 def test_registry_storage(clean_registry):
     ui_data = {
-        "widgets": [{"id": "w1", "type": "button", "name": "My Button"}],
+        "widgets": [{"id": "w1", "size": "1x1", "entry_point": "w1.svelte", "title": "My Button"}],
         "views": []
     }
     registry.register_ui_extension("p1", ui_data)
     extensions = registry.get_ui_extensions()
     assert "p1" in extensions
-    assert extensions["p1"]["widgets"][0]["name"] == "My Button"
+    assert extensions["p1"]["widgets"][0]["title"] == "My Button"
 
 def test_loader_ui_registration(temp_plugins_dir, clean_registry):
     # Use a fresh loader instance pointing to temp dir
     loader = PluginLoader(plugins_dir=str(temp_plugins_dir))
 
     ui_data = {
-        "widgets": [{"id": "w1", "type": "button", "name": "My Button"}],
+        "widgets": [{"id": "w1", "size": "1x1", "entry_point": "w1.svelte", "title": "My Button"}],
         "views": []
     }
     manifest = {
@@ -93,12 +93,12 @@ def test_loader_ui_registration(temp_plugins_dir, clean_registry):
 def test_loader_invalid_ui_manifest(temp_plugins_dir, clean_registry):
     loader = PluginLoader(plugins_dir=str(temp_plugins_dir))
 
-    # Invalid UI in manifest (missing name for widget)
+    # Invalid UI in manifest (missing title for widget)
     manifest = {
         "id": "bad_ui_plugin",
         "version": "1.0.0",
         "ui": {
-            "widgets": [{"id": "w1", "type": "button"}],
+            "widgets": [{"id": "w1", "size": "1x1"}],
             "views": []
         }
     }
@@ -115,7 +115,7 @@ def test_loader_invalid_ui_manifest(temp_plugins_dir, clean_registry):
 def test_api_endpoint(clean_registry):
     # Manually register some data
     ui_data = {
-        "widgets": [{"id": "w1", "type": "button", "name": "API Button"}],
+        "widgets": [{"id": "w1", "size": "1x1", "entry_point": "w1.svelte", "title": "API Button"}],
         "views": []
     }
     registry.register_ui_extension("api_plugin", ui_data)
@@ -124,4 +124,4 @@ def test_api_endpoint(clean_registry):
     assert response.status_code == 200
     data = response.json()
     assert "api_plugin" in data
-    assert data["api_plugin"]["widgets"][0]["name"] == "API Button"
+    assert data["api_plugin"]["widgets"][0]["title"] == "API Button"
