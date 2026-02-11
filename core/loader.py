@@ -77,6 +77,9 @@ class PluginLoader:
                 logger.warning(f"No 'plugin' instance found in {manifest.id}")
                 return
 
+            # Inject ID into plugin instance
+            plugin_instance.id = manifest.id
+
             self.pm.register(plugin_instance)
             self.loaded_plugins.append(manifest.id)
             self.plugin_paths[manifest.id] = plugin_path
