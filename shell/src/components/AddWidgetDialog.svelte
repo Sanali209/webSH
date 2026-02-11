@@ -40,12 +40,12 @@
 <div class="dialog-container">
     <div class="tabs">
         {#each tabs as tab}
+            {@const Icon = tab.icon}
             <button
                 class="tab-btn"
                 class:active={activeTab === tab.id}
                 onclick={() => loadItems(tab.id)}
             >
-                {@const Icon = tab.icon}
                 <Icon size={16} />
                 {tab.label}
             </button>

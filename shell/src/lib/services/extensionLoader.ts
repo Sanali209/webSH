@@ -55,14 +55,20 @@ export async function loadExtensions(typeFilter?: string): Promise<Extension[]> 
                          url = `/plugins/${item.plugin_id}/ui/${url}`;
                     }
 
-                    // Dynamic import
-                    /* @vite-ignore */
-                    const module = await import(/* @vite-ignore */ url);
-
-                    loadedExtensions.push({
-                        ...item,
-                        component: module.default || module
-                    });
+                    // Dynamic import or static URL for iframes
+                    if (url.endsWith('.html')) {
+                        loadedExtensions.push({
+                            ...item,
+                            component: url
+                        });
+                    } else {
+                        /* @vite-ignore */
+                        const module = await import(/* @vite-ignore */ url);
+                        loadedExtensions.push({
+                            ...item,
+                            component: module.default || module
+                        });
+                    }
                 } catch (e) {
                     console.error(`Failed to load extension ${item.id} from ${item.entry_point}`, e);
                 }

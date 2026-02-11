@@ -1,10 +1,19 @@
 <script>
+    import WidgetHost from '../WidgetHost.svelte';
+
     let { component, props } = $props();
     let Widget = $state(null);
     let error = $state(null);
+    let isIframe = $state(false);
 
     $effect(() => {
         if (!component) return;
+
+        // Handle iframe components
+        if (typeof component === 'string' && component.endsWith('.html')) {
+            isIframe = true;
+            return;
+        }
 
         // Dynamic import
         // Note: In Vite, we need to match the actual file structure.
@@ -44,6 +53,8 @@
         <div class="error">
             <span>⚠️ {error}</span>
         </div>
+    {:else if isIframe}
+        <WidgetHost src={component} />
     {:else if Widget}
         <Widget {...props} />
     {:else}
