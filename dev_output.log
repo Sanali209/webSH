@@ -1,0 +1,33 @@
+
+> shell@0.0.0 dev
+> vite
+
+
+  VITE v7.3.1  ready in 665 ms
+
+  ➜  Local:   http://localhost:5173/
+  ➜  Network: use --host to expose
+1:03:43 PM [vite-plugin-svelte] src/components/system/ModalContainer.svelte:7:4 Visible, non-interactive elements with a click event must be accompanied by a keyboard event handler. Consider whether an interactive element such as `<button type="button">` or `<a>` might be more appropriate. See https://svelte.dev/docs/accessibility-warnings#a11y-click-events-have-key-events for more details
+1:03:43 PM [vite-plugin-svelte] src/components/system/ModalContainer.svelte:7:4 Non-interactive element `<div>` should not be assigned mouse or keyboard event listeners
+1:03:43 PM [vite-plugin-svelte] src/components/system/ModalContainer.svelte:8:8 Visible, non-interactive elements with a click event must be accompanied by a keyboard event handler. Consider whether an interactive element such as `<button type="button">` or `<a>` might be more appropriate. See https://svelte.dev/docs/accessibility-warnings#a11y-click-events-have-key-events for more details
+1:03:43 PM [vite-plugin-svelte] src/components/system/ModalContainer.svelte:8:8 `<div>` with a click handler must have an ARIA role
+1:03:45 PM [vite] http proxy error: /api/v1/plugins
+Error: connect ECONNREFUSED 127.0.0.1:8000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16)
+1:03:45 PM [vite] ws proxy error:
+Error: connect ECONNREFUSED 127.0.0.1:8000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16)
+1:07:01 PM [vite] (client) hmr update /src/components/DesktopGrid.svelte
+1:07:28 PM [vite] http proxy error: /api/v1/plugins
+Error: connect ECONNREFUSED 127.0.0.1:8000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16)
+1:07:28 PM [vite] http proxy error: /api/v1/plugins
+Error: connect ECONNREFUSED 127.0.0.1:8000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16)
+1:07:28 PM [vite] ws proxy error:
+Error: connect ECONNREFUSED 127.0.0.1:8000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16)
+1:07:28 PM [vite] ws proxy error:
+Error: connect ECONNREFUSED 127.0.0.1:8000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16)
+1:07:31 PM [vite] (client) page reload playwright-report/index.html

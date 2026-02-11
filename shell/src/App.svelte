@@ -1,7 +1,7 @@
 <script>
   import Sidebar from "./components/layout/Sidebar.svelte";
   import TopBar from "./components/layout/TopBar.svelte";
-  import Grid from "./components/desktop/Grid.svelte";
+  import DesktopGrid from "./components/DesktopGrid.svelte";
   import ModalContainer from "./components/system/ModalContainer.svelte";
   import { appState, initSystem } from "./lib/store.svelte.js";
   import ErrorBoundary from "./lib/components/ErrorBoundary.svelte";
@@ -29,7 +29,7 @@
           </ErrorBoundary>
       </div>
 
-      <Grid />
+      <DesktopGrid />
     </div>
   </div>
 </main>

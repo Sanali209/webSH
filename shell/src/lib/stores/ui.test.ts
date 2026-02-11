@@ -11,7 +11,7 @@ describe('UIState', () => {
     it('should initialize with default desktop', () => {
         expect(uiState.desktops.length).toBe(1);
         expect(uiState.activeDesktop).toBe(0);
-        expect(uiState.widgets.length).toBe(0);
+        expect(uiState.desktops[0].widgets.length).toBe(2); // Default widgets
     });
 
     it('should add a desktop', () => {
@@ -35,8 +35,9 @@ describe('UIState', () => {
             type: 'icon' as const
         };
         uiState.addWidget(0, widget);
-        expect(uiState.desktops[0].widgets.length).toBe(1);
-        expect(uiState.desktops[0].widgets[0].id).toBe('w1');
+        expect(uiState.desktops[0].widgets.length).toBe(3);
+        const added = uiState.desktops[0].widgets.find(w => w.id === 'w1');
+        expect(added).toBeDefined();
     });
 
     it('should remove a widget', () => {
@@ -50,6 +51,6 @@ describe('UIState', () => {
         };
         uiState.addWidget(0, widget);
         uiState.removeWidget(0, 'w1');
-        expect(uiState.desktops[0].widgets.length).toBe(0);
+        expect(uiState.desktops[0].widgets.length).toBe(2);
     });
 });

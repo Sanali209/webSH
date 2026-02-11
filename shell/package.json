@@ -13,8 +13,8 @@
   "devDependencies": {
     "@playwright/test": "^1.58.2",
     "@sveltejs/vite-plugin-svelte": "^6.2.1",
-    "@testing-library/svelte": "^5.3.1",
     "@testing-library/jest-dom": "^6.4.2",
+    "@testing-library/svelte": "^5.3.1",
     "@types/node": "^25.2.3",
     "jsdom": "^28.0.0",
     "svelte": "^5.0.0-next.272",
@@ -23,8 +23,9 @@
   },
   "dependencies": {
     "axios": "^1.13.5",
-    "lucide-svelte": "^0.563.0",
     "d3": "^7.9.0",
+    "lucide-svelte": "^0.563.0",
+    "svelte-dnd-action": "^0.9.69",
     "svelte-json-tree": "^2.2.0"
   }
 }
