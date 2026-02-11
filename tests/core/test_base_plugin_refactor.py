@@ -27,7 +27,8 @@ def test_base_plugin_defaults():
 def test_custom_plugin_settings():
     plugin = MyPlugin()
     schema = plugin.export_settings_schema()
-    assert schema["title"] == "MySettings"
+    # Title is removed by core.utils.settings_to_json_schema
+    assert "title" not in schema
     assert "key" in schema["properties"]
     assert "enabled" in schema["properties"]
 

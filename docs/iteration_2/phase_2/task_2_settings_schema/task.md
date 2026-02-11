@@ -9,16 +9,16 @@
 
 ## Подзадачи
 
-1.  [ ] **Helper function**
+1.  [x] **Helper function**
     *   Создать функцию `core.utils.settings_to_json_schema(model: Type[BaseModel]) -> Dict`.
     *   Использовать `model.model_json_schema()`.
     *   Удалять/очищать служебные поля (`title`, `description`, если они мешают).
     *   Добавлять `ui:widget` (если поддерживается) для специфических типов полей (Password, TextArea).
-2.  [ ] **Интеграция с BasePlugin**
+2.  [x] **Интеграция с BasePlugin**
     *   В `BasePlugin`: Добавить метод `get_settings_schema()`.
     *   Вызывать этот метод при регистрации плагина в `core/loader.py` или `core/registry.py`.
     *   Сохранять схему в метаданные плагина (`registry._plugins[id]['settings_schema']`).
-3.  [ ] **Unit Tests**
+3.  [x] **Unit Tests**
     *   Создать модель `TestSettings` с разными типами полей (str, int, bool, Enum).
     *   Проверить корректность генерации JSON Schema.
     *   Проверить наличие обязательных полей (`required`).
@@ -28,9 +28,9 @@
 *   **Integration:** Загрузить тестовый плагин с настройками, проверить наличие схемы в реестре.
 
 ## Пункты самопроверки
-*   [ ] Функция `settings_to_json_schema` работает корректно для сложных типов (List, Dict).
-*   [ ] Схема содержит правильные типы данных (string, integer, boolean).
-*   [ ] Схема доступна через API реестра.
+*   [x] Функция `settings_to_json_schema` работает корректно для сложных типов (List, Dict).
+*   [x] Схема содержит правильные типы данных (string, integer, boolean).
+*   [x] Схема доступна через API реестра.
 
 ## Критерии выполнения (Definition of Done)
 1.  Функция генерации схем работает.
