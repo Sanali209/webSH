@@ -1,36 +1,52 @@
-import type { UIState } from '../stores/ui.svelte.ts';
+import { uiState } from '../stores/ui.svelte.ts';
+import axios from 'axios';
 
-const STORAGE_KEY = 'shell_ui_state';
-
-export const saveState = (state: UIState) => {
+// Sync current state with backend
+export const syncWithBackend = async () => {
     try {
-        // Runes are proxies, but JSON.stringify usually handles them fine if they wrap objects.
-        // However, explicit mapping is safer.
-        const data = {
-            activeDesktop: state.activeDesktop,
-            desktops: state.desktops, // deep clone or rely on proxy serialization
-            widgets: state.widgets
-        };
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+        const payload = uiState.desktops;
+        await axios.post('/api/v1/desktop/sync', payload);
+        console.log('Synced state with backend');
     } catch (e) {
-        console.error('Failed to save state:', e);
+        console.error('Failed to sync state:', e);
     }
 };
 
-export const loadState = (): any | null => {
+// Load state from backend on startup
+export const loadState = async () => {
     try {
-        const data = localStorage.getItem(STORAGE_KEY);
-        if (data) {
-            return JSON.parse(data);
+        const response = await axios.get('/api/v1/desktop/sync');
+        const data = response.data;
+
+        if (Array.isArray(data) && data.length > 0) {
+            uiState.desktops = data;
+            uiState.widgets = data.flatMap((d: any) => d.widgets);
+            if (!data.some((d: any) => d.id === uiState.activeDesktop)) {
+                uiState.activeDesktop = data[0].id;
+            }
         }
+        console.log('Loaded state from backend');
     } catch (e) {
         console.error('Failed to load state:', e);
     }
-    return null;
 };
 
-export const syncWithBackend = async (state: UIState) => {
-    // Placeholder for backend sync
-    console.log('Syncing state with backend...', state);
-    // await fetch('/api/v1/desktop/sync', { method: 'POST', body: JSON.stringify(state) });
+// CRUD Operations
+
+export const addDesktop = async () => {
+    uiState.addDesktop();
+    await syncWithBackend();
+};
+
+export const removeDesktop = async (id: number) => {
+    uiState.removeDesktop(id);
+    await syncWithBackend();
+};
+
+export const switchDesktop = (id: number) => {
+    uiState.setActiveDesktop(id);
+};
+
+export const saveState = () => {
+    syncWithBackend();
 };

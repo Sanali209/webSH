@@ -1,9 +1,9 @@
 <script>
-  import { appState, setActiveDesktop } from "../../lib/store.svelte.js";
-  import { LayoutGrid, Monitor, Settings, Plug } from "lucide-svelte";
+  import { appState } from "../../lib/store.svelte.js";
+  import { uiState } from "../../lib/stores/ui.svelte.ts";
+  import { addDesktop, removeDesktop, switchDesktop } from "../../lib/services/uiManager.ts";
+  import { LayoutGrid, Monitor, Settings, Plug, Plus, X } from "lucide-svelte";
   import Slot from "../system/Slot.svelte";
-
-  let desktops = [1, 2, 3, 4, 5];
 </script>
 
 <aside class="sidebar" class:collapsed={!appState.isSidebarOpen}>
@@ -12,17 +12,32 @@
   </div>
 
   <nav>
-    {#each desktops as id}
-      <button
-        class="desktop-btn"
-        class:active={appState.activeDesktop === id}
-        onclick={() => setActiveDesktop(id)}
-        aria-label="Desktop {id}"
-      >
-        <Monitor size={20} />
-        <span class="label">Desktop {id}</span>
-      </button>
+    {#each uiState.desktops as desktop (desktop.id)}
+      <div class="desktop-row">
+          <button
+            class="desktop-btn"
+            class:active={uiState.activeDesktop === desktop.id}
+            onclick={() => switchDesktop(desktop.id)}
+            aria-label="Desktop {desktop.id}"
+          >
+            <Monitor size={20} />
+            <span class="label">Desktop {desktop.id}</span>
+          </button>
+
+          {#if appState.isSidebarOpen && uiState.desktops.length > 1}
+            <button class="delete-btn" onclick={(e) => { e.stopPropagation(); removeDesktop(desktop.id); }} aria-label="Delete Desktop {desktop.id}">
+                <X size={14} />
+            </button>
+          {/if}
+      </div>
     {/each}
+
+    <button class="add-btn" onclick={addDesktop} aria-label="Add Desktop">
+        <Plus size={20} />
+        {#if appState.isSidebarOpen}
+            <span class="label">New Desktop</span>
+        {/if}
+    </button>
   </nav>
 
   <div class="footer">
@@ -67,6 +82,18 @@
     gap: 0.5rem;
   }
 
+  .desktop-row {
+    display: flex;
+    align-items: center;
+    padding: 0 1rem;
+    gap: 0.5rem;
+  }
+
+  .sidebar.collapsed .desktop-row {
+      padding: 0;
+      justify-content: center;
+  }
+
   .desktop-btn {
     display: flex;
     align-items: center;
@@ -77,8 +104,9 @@
     color: var(--text-secondary);
     cursor: pointer;
     transition: all 0.2s;
-    width: 100%;
+    flex: 1;
     text-align: left;
+    border-radius: 4px;
   }
 
   .desktop-btn:hover {
@@ -89,6 +117,50 @@
   .desktop-btn.active {
     background: var(--accent-color);
     color: white;
+  }
+
+  .delete-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-secondary);
+      cursor: pointer;
+      padding: 0.5rem;
+      opacity: 0;
+      transition: opacity 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+  }
+
+  .desktop-row:hover .delete-btn {
+      opacity: 1;
+  }
+
+  .delete-btn:hover {
+      color: #ef4444; /* Red-500 */
+      background: rgba(239, 68, 68, 0.1);
+      border-radius: 4px;
+  }
+
+  .add-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    padding: 0.75rem 1rem;
+    background: transparent;
+    border: 1px dashed var(--border-color);
+    color: var(--text-secondary);
+    cursor: pointer;
+    margin: 0.5rem 1rem;
+    border-radius: 4px;
+    transition: all 0.2s;
+  }
+
+  .add-btn:hover {
+      border-color: var(--text-primary);
+      color: var(--text-primary);
+      background: var(--bg-hover);
   }
 
   .footer {
@@ -120,5 +192,19 @@
   .sidebar.collapsed .desktop-btn {
     justify-content: center;
     padding: 0.75rem 0;
+  }
+
+  .sidebar.collapsed .add-btn {
+      margin: 0.5rem 0.5rem;
+      padding: 0.5rem;
+  }
+
+  .sidebar.collapsed .desktop-row {
+      padding: 0 0.5rem;
+  }
+
+  /* Hide delete button when collapsed */
+  .sidebar.collapsed .delete-btn {
+      display: none;
   }
 </style>

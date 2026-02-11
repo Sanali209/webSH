@@ -8,6 +8,7 @@ export interface Widget {
     label?: string;
     icon?: string;
     component?: string;
+    props?: string;
 }
 
 export interface Desktop {
@@ -31,9 +32,34 @@ export class UIState {
     }
 
     addDesktop() {
-        const id = this.desktops.length;
+        // Find max ID to avoid collisions when removing/adding
+        const maxId = this.desktops.length > 0 ? Math.max(...this.desktops.map(d => d.id)) : -1;
+        const id = maxId + 1;
         this.desktops.push({ id, widgets: [] });
         return id;
+    }
+
+    removeDesktop(id: number) {
+        if (this.desktops.length <= 1) return;
+
+        const index = this.desktops.findIndex(d => d.id === id);
+        if (index !== -1) {
+            const removedDesktop = this.desktops[index];
+            // Remove widgets of this desktop from global list
+            const widgetIdsToRemove = new Set(removedDesktop.widgets.map(w => w.id));
+            this.widgets = this.widgets.filter(w => !widgetIdsToRemove.has(w.id));
+
+            // Remove desktop
+            this.desktops.splice(index, 1);
+
+            // If we removed the active desktop, switch to another one
+            if (this.activeDesktop === id) {
+                const newIndex = Math.max(0, index - 1);
+                if (this.desktops[newIndex]) {
+                    this.activeDesktop = this.desktops[newIndex].id;
+                }
+            }
+        }
     }
 
     addWidget(desktopId: number, widget: Widget) {
