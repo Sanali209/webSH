@@ -85,7 +85,11 @@ class PluginLoader:
             self.plugin_paths[manifest.id] = plugin_path
             
             # 4. Register with Registry
-            registry.register_plugin(manifest.model_dump())
+            plugin_data = manifest.model_dump()
+            if hasattr(plugin_instance, "get_settings_schema"):
+                plugin_data["settings_schema"] = plugin_instance.get_settings_schema()
+
+            registry.register_plugin(plugin_data)
 
             # 5. Register UI Extensions
             if manifest.ui:

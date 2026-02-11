@@ -2,6 +2,7 @@ from functools import wraps
 from typing import Callable, Any, Optional, Type, Dict
 from pydantic import BaseModel
 from core.hooks import hookimpl
+from core.utils import settings_to_json_schema
 
 class BaseSettings(BaseModel):
     """
@@ -34,14 +35,20 @@ class BasePlugin:
         """
         return {}
 
+    def get_settings_schema(self) -> Dict[str, Any]:
+        """
+        Exports the settings schema as a JSON schema dictionary.
+        Uses the settings_to_json_schema helper for enhancement.
+        """
+        model = self.get_settings_model()
+        return settings_to_json_schema(model)
+
     def export_settings_schema(self) -> Dict[str, Any]:
         """
         Exports the settings schema as a JSON schema dictionary.
+        DEPRECATED: Use get_settings_schema instead.
         """
-        model = self.get_settings_model()
-        if model:
-            return model.model_json_schema()
-        return {}
+        return self.get_settings_schema()
 
     async def on_activate(self):
         """Called upon plugin activation."""
