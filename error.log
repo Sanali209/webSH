@@ -1,0 +1,45 @@
+INFO:     Started server process [16816]
+INFO:     Waiting for application startup.
+Traceback (most recent call last):
+  File "D:\github\webSH\core\loader.py", line 69, in _load_plugin
+    spec.loader.exec_module(module)
+  File "<frozen importlib._bootstrap_external>", line 940, in exec_module
+  File "<frozen importlib._bootstrap>", line 241, in _call_with_frames_removed
+  File "D:\github\webSH\plugins\system_fs\backend.py", line 5, in <module>
+    import imohash
+ModuleNotFoundError: No module named 'imohash'
+┌─────────────────────────── Plugin Loading Error ────────────────────────────┐
+│ Failed to load plugin at plugins\system_fs                                  │
+│ Error: No module named 'imohash'                                            │
+│ Plugin ID: system_fs                                                        │
+└─────────────────────────────────────────────────────────────────────────────┘
+[32m2026-02-11 04:25:25.764[0m | [31m[1mERROR   [0m | [36mcore.loader[0m:[36m_load_plugin[0m:[36m95[0m - [31m[1mFailed to load plugin at plugins\system_fs: No module named 'imohash'[0m
+Traceback (most recent call last):
+  File "D:\github\webSH\core\loader.py", line 69, in _load_plugin
+    spec.loader.exec_module(module)
+  File "<frozen importlib._bootstrap_external>", line 940, in exec_module
+  File "<frozen importlib._bootstrap>", line 241, in _call_with_frames_removed
+  File "D:\github\webSH\plugins\system_storage\backend.py", line 2, in <module>
+    import lancedb
+ModuleNotFoundError: No module named 'lancedb'
+┌─────────────────────────── Plugin Loading Error ────────────────────────────┐
+│ Failed to load plugin at plugins\system_storage                             │
+│ Error: No module named 'lancedb'                                            │
+│ Plugin ID: system_storage                                                   │
+└─────────────────────────────────────────────────────────────────────────────┘
+[32m2026-02-11 04:25:25.769[0m | [31m[1mERROR   [0m | [36mcore.loader[0m:[36m_load_plugin[0m:[36m95[0m - [31m[1mFailed to load plugin at plugins\system_storage: No module named 'lancedb'[0m
+[32m2026-02-11 04:25:25.774[0m | [34m[1mDEBUG   [0m | [36mcore.registry[0m:[36mregister_plugin[0m:[36m62[0m - [34m[1mRegistered plugin metadata: system_transport[0m
+[32m2026-02-11 04:25:25.774[0m | [1mINFO    [0m | [36mcore.loader[0m:[36m_load_plugin[0m:[36m83[0m - [1mSuccessfully loaded plugin: system_transport (v1.0.0)[0m
+[32m2026-02-11 04:25:25.776[0m | [34m[1mDEBUG   [0m | [36mcore.registry[0m:[36mregister_plugin[0m:[36m62[0m - [34m[1mRegistered plugin metadata: test_plugin[0m
+[32m2026-02-11 04:25:25.776[0m | [1mINFO    [0m | [36mcore.loader[0m:[36m_load_plugin[0m:[36m83[0m - [1mSuccessfully loaded plugin: test_plugin (v1.0.0)[0m
+[32m2026-02-11 04:25:25.776[0m | [1mINFO    [0m | [36mcore.registry[0m:[36mregister[0m:[36m26[0m - [1mRegistered capability: test.ping@1.0.0 (Schema: Yes)[0m
+[32m2026-02-11 04:25:25.776[0m | [1mINFO    [0m | [36mcore.loader[0m:[36mdiscover_and_load[0m:[36m45[0m - [1mPlugin initialization complete. Total: 2[0m
+[32m2026-02-11 04:25:25.816[0m | [1mINFO    [0m | [36m__main__[0m:[36mcheck_infrastructure[0m:[36m27[0m - [1mSuccessfully connected to Redis[0m
+[32m2026-02-11 04:25:25.817[0m | [1mINFO    [0m | [36m__main__[0m:[36mcheck_infrastructure[0m:[36m35[0m - [1mTracing initialized[0m
+INFO:     Application startup complete.
+ERROR:    [Errno 10048] error while attempting to bind on address ('127.0.0.1', 8000): обычно разрешается только одно использование адреса сокета (протокол/сетевой адрес/порт)
+INFO:     Waiting for application shutdown.
+D:\github\webSH\main.py:53: DeprecationWarning: Call to deprecated close. (Use aclose() instead) -- Deprecated since version 5.0.1.
+  await redis_client.close()
+[32m2026-02-11 04:25:25.818[0m | [1mINFO    [0m | [36m__main__[0m:[36mlifespan[0m:[36m54[0m - [1mKernel shutdown complete[0m
+INFO:     Application shutdown complete.

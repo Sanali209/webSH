@@ -60,6 +60,16 @@ app = FastAPI(
     default_response_class=ORJSONResponse
 )
 
+from fastapi.middleware.cors import CORSMiddleware
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # For dev, allow all. In prod, strict list.
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 @app.post("/api/v1/call")
 async def capability_call(envelope: CapabilityEnvelope):
     """
@@ -73,6 +83,19 @@ async def list_plugins():
     Returns a list of all loaded plugins and their metadata.
     """
     return registry.list_plugins()
+
+from fastapi import WebSocket
+
+@app.websocket("/ws")
+async def websocket_endpoint(websocket: WebSocket):
+    await websocket.accept()
+    try:
+        while True:
+            data = await websocket.receive_text()
+            # Echo for now, or send to switchboard
+            await websocket.send_text(f"Message text was: {data}")
+    except Exception:
+        pass
 
 @app.get("/health")
 async def health_check():
@@ -96,7 +119,5 @@ async def health_check():
 if __name__ == "__main__":
     import uvicorn
     
-    # Start the Rich Live dashboard in a separate thread/task or just before uvicorn
-    # For now, we'll let uvicorn handle the logs, but we'll print the initial dashboard
-    with Live(dashboard.get_renderable(), console=console, refresh_per_second=4):
-        uvicorn.run(app, host=settings.HOST, port=settings.PORT, log_level="info")
+    # Start uvicorn directly to see errors
+    uvicorn.run(app, host=settings.HOST, port=settings.PORT, log_level="info")

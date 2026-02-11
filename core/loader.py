@@ -1,6 +1,7 @@
 import os
 import json
 import importlib.util
+import traceback
 from typing import List, Optional
 from pydantic import BaseModel, Field
 import pluggy
@@ -82,6 +83,7 @@ class PluginLoader:
             logger.info(f"Successfully loaded plugin: {manifest.id} (v{manifest.version})")
 
         except Exception as e:
+            traceback.print_exc()
             # Beautiful error reporting via Rich
             console.print(Panel(
                 f"[bold red]Failed to load plugin at {plugin_path}[/bold red]\n"
