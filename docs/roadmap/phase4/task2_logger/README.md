@@ -1,42 +1,42 @@
 # Task 4.2: System Logger (Tracing & OpenTelemetry)
 
 ## 1. Вводная часть
-Перед началом исполнения: **изучить описание System Logger в `docs/DESIGN.md` раздел 5.5 и механизм трассировки в `docs/DESIGN_EXTENDED.md` раздел 1**.
+Перед началом исполнения: **изучить современные стандарты структурированного логирования и OpenTelemetry Tracing**.
 
 ## 2. Инструкция по выполнению
 1. Реализовать плагин `system_logger`.
-2. Интегрировать **Loguru** для сбора структурированных логов всего ядра.
-3. Настроить **OpenTelemetry** для визуализации пути прохождения сигнала через `trace_stack`.
-4. Реализовать Capability `debug.trace` и `debug.log` для получения графа вызовов по `correlation_id`.
+2. Интегрировать **Loguru** для сбора структурированных (JSON) логов.
+3. Настроить экспорт данных в **OpenTelemetry Collector**, развернутый в Docker (`http://localhost:4317`).
+4. Реализовать ручной мост (Bridge) между Loguru и OpenTelemetry:
+    - Извлекать `trace_id` и `span_id` из активного контекста OpenTelemetry.
+    - Внедрять их в каждый лог Loguru через `logger.configure(extra=...)`.
+5. Использовать `contextvars` для защиты контекста в асинхронных вызовах.
 
 ## 3. Спецификация API (Integration Details)
 - **Monitoring:** Прослушивание Шины на домене `*.*`.
-- **Capability:** `debug.trace(correlation_id)` -> GraphJSON
-- **Storage:** Локальное хранение истории последних 1000 сигналов (в RAM или SQLite).
+- **Telemetry Export:** OTLP (OpenTelemetry Protocol) к эндпоинту `OTEL_EXPORTER_OTLP_ENDPOINT`.
 
 ## 4. Зависимости (Dependencies)
-- `loguru`, `opentelemetry-api`, `opentelemetry-sdk`.
+- `loguru`, `opentelemetry-api`, `opentelemetry-sdk`, `opentelemetry-exporter-otlp`.
 
 ## 5. Принципы кода и архитектуры
-- [ ] **Zero Performance Impact:** Логгер не должен замедлять Switchboard.
-- [ ] **Context Injection:** Автоматическое извлечение `parent_id` из контекста сигнала.
-- [ ] **Structured Format:** Все логи — это JSON объекты.
-- [ ] **Log Rotation:** Автоматическая ротация файлов логов по размеру/дате.
+- [ ] **Context Safe:** Использование `contextvars` для корректности `correlation_id`.
+- [ ] **Infrastructure Check:** Проверка связи с `websh-otel-collector` при инициализации.
+- [ ] **Trace-Log Correlation:** Логи должны быть видимы в Jaeger через Trace ID.
 
 ## 6. Безопасность и Валидация
-- Фильтрация (masking) паролей и токенов в логах.
-- Ограничение размера `trace_stack`, чтобы избежать раздувания пакетов.
+- Автоматическая маскировка конфиденциальных данных (токены, пароли) в фильтрах Loguru.
+- Ограничение объема телеметрии (Sampling) при высокой нагрузке.
 
 ## 7. Самопроверка (Self-Review)
-- [ ] Проверка графа трассировки в консоли OpenTelemetry.
-- [ ] `debug.trace` возвращает корректную последовательность вызовов.
+- [ ] Лог-строка содержит актуальный `trace_id`.
+- [ ] В консоли Jaeger (`http://localhost:16686`) видны графы вызовов.
 
 ## 8. План исполнения
-1. [ ] Настройка экспортера логов.
-2. [ ] Обработчик перехвата сигналов.
-3. [ ] API для получения истории трассировки.
+1. [ ] Настройка OTel TracerProvider.
+2. [ ] Интеграция с Loguru через Sink/Filter.
+3. [ ] API для отладки трасс.
 
 ## 9. Цели готовности (Definition of Done)
-- [ ] Каждое действие в системе задокументировано.
-- [ ] Доступен визуальный аудит событий.
-- [ ] Сквозной Correlation ID работает на 100%.
+- [ ] Полная прозрачность прохождения сигналов через систему.
+- [ ] Любой сбой можно отследить по графу вызовов в Jaeger.
