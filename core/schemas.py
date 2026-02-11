@@ -20,3 +20,21 @@ class CapabilityEnvelope(BaseModel):
         populate_by_name=True,
         arbitrary_types_allowed=True
     )
+
+class WidgetSchema(BaseModel):
+    id: str
+    type: str
+    name: str
+    description: Optional[str] = None
+    model_config = ConfigDict(extra='allow')
+
+class ViewSchema(BaseModel):
+    id: str
+    type: str
+    name: str
+    path: str
+    model_config = ConfigDict(extra='allow')
+
+class PluginUI(BaseModel):
+    widgets: List[WidgetSchema] = Field(default_factory=list)
+    views: List[ViewSchema] = Field(default_factory=list)

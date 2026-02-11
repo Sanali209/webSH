@@ -137,6 +137,13 @@ async def list_plugins():
     """
     return registry.list_plugins()
 
+@app.get("/api/v1/registry/ui-extensions")
+async def list_ui_extensions():
+    """
+    Returns a list of all registered UI extensions, grouped by plugin ID.
+    """
+    return registry.get_ui_extensions()
+
 from fastapi import WebSocket
 
 @app.websocket("/ws")
