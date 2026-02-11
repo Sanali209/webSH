@@ -163,43 +163,10 @@ async def list_plugins():
 @app.get("/api/v1/registry/ui-extensions")
 async def list_ui_extensions():
     """
-    Returns a flattened list of all registered UI extensions.
+    Returns a grouped dictionary of all registered UI extensions.
+    Response format: { "widgets": [...], "applications": [...], "shortcuts": [...], "top_bar": [...] }
     """
-    extensions = []
-    for plugin_id, ui_data in registry.get_ui_extensions().items():
-        # Widgets
-        if "widgets" in ui_data:
-            for widget in ui_data["widgets"]:
-                ext = widget.copy()
-                ext["plugin_id"] = plugin_id
-                # WidgetSchema has type="widget"
-                extensions.append(ext)
-
-        # Top Bar Items
-        if "top_bar" in ui_data:
-            for item in ui_data["top_bar"]:
-                ext = item.copy()
-                ext["plugin_id"] = plugin_id
-                # TopBarItemSchema has type="top_bar.item"
-                extensions.append(ext)
-
-        # Views
-        if "views" in ui_data:
-            for view in ui_data["views"]:
-                ext = view.copy()
-                ext["plugin_id"] = plugin_id
-                ext["type"] = "view"
-                extensions.append(ext)
-
-        # Shortcuts
-        if "shortcuts" in ui_data:
-            for shortcut in ui_data["shortcuts"]:
-                ext = shortcut.copy()
-                ext["plugin_id"] = plugin_id
-                ext["type"] = "shortcut"
-                extensions.append(ext)
-
-    return extensions
+    return registry.list_extensions()
 
 from fastapi import WebSocket
 

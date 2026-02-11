@@ -11,17 +11,23 @@
         // We assume plugins are located in src/plugins/{component}/index.svelte
         const loadWidget = async () => {
             try {
-                // Using specific glob import for reliability in Vite
-                const modules = import.meta.glob(
-                    "../../plugins/*/index.svelte",
-                );
-                const path = `../../plugins/${component}/index.svelte`;
-
-                if (modules[path]) {
-                    const mod = await modules[path]();
-                    Widget = mod.default;
+                if (component.startsWith("/") || component.startsWith("http")) {
+                     /* @vite-ignore */
+                     const mod = await import(/* @vite-ignore */ component);
+                     Widget = mod.default || mod;
                 } else {
-                    throw new Error(`Widget ${component} not found`);
+                    // Using specific glob import for reliability in Vite
+                    const modules = import.meta.glob(
+                        "../../plugins/*/index.svelte",
+                    );
+                    const path = `../../plugins/${component}/index.svelte`;
+
+                    if (modules[path]) {
+                        const mod = await modules[path]();
+                        Widget = mod.default;
+                    } else {
+                        throw new Error(`Widget ${component} not found`);
+                    }
                 }
             } catch (e) {
                 console.error(`Failed to load widget ${component}:`, e);

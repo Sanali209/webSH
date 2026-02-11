@@ -18,14 +18,34 @@ export async function loadExtensions(typeFilter?: string): Promise<Extension[]> 
             return [];
         }
 
-        const data: Extension[] = await response.json();
+        const data = await response.json();
+        let items: Extension[] = [];
+
+        if (typeFilter) {
+            if (typeFilter === 'widget') items = data.widgets || [];
+            else if (typeFilter === 'application' || typeFilter === 'view') items = data.applications || [];
+            else if (typeFilter === 'shortcut') items = data.shortcuts || [];
+            else if (typeFilter === 'top_bar.item') items = data.top_bar || [];
+            else {
+                 items = [
+                    ...(data.widgets || []),
+                    ...(data.applications || []),
+                    ...(data.shortcuts || []),
+                    ...(data.top_bar || [])
+                ].filter((item: Extension) => item.type === typeFilter);
+            }
+        } else {
+             items = [
+                ...(data.widgets || []),
+                ...(data.applications || []),
+                ...(data.shortcuts || []),
+                ...(data.top_bar || [])
+            ];
+        }
+
         const loadedExtensions: Extension[] = [];
 
-        for (const item of data) {
-            if (typeFilter && item.type !== typeFilter) {
-                continue;
-            }
-
+        for (const item of items) {
             if (item.entry_point) {
                 try {
                     let url = item.entry_point;

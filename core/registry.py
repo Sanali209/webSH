@@ -82,4 +82,54 @@ class Registry:
         """
         return self._ui_extensions
 
+    def list_extensions(self) -> Dict[str, List[Dict[str, Any]]]:
+        """
+        Returns all registered UI extensions grouped by type.
+        """
+        result = {
+            "widgets": [],
+            "applications": [],
+            "shortcuts": [],
+            "top_bar": []
+        }
+
+        for plugin_id, ui_data in self._ui_extensions.items():
+            # Widgets
+            if "widgets" in ui_data:
+                for widget in ui_data["widgets"]:
+                    ext = widget.copy()
+                    ext["plugin_id"] = plugin_id
+                    # Ensure type is set if not present (though schema enforces it)
+                    if "type" not in ext:
+                        ext["type"] = "widget"
+                    result["widgets"].append(ext)
+
+            # Top Bar Items
+            if "top_bar" in ui_data:
+                for item in ui_data["top_bar"]:
+                    ext = item.copy()
+                    ext["plugin_id"] = plugin_id
+                    if "type" not in ext:
+                        ext["type"] = "top_bar.item"
+                    result["top_bar"].append(ext)
+
+            # Views -> Applications
+            if "views" in ui_data:
+                for view in ui_data["views"]:
+                    ext = view.copy()
+                    ext["plugin_id"] = plugin_id
+                    ext["type"] = "application"  # Map 'view' to 'application' for frontend clarity
+                    result["applications"].append(ext)
+
+            # Shortcuts
+            if "shortcuts" in ui_data:
+                for shortcut in ui_data["shortcuts"]:
+                    ext = shortcut.copy()
+                    ext["plugin_id"] = plugin_id
+                    if "type" not in ext:
+                        ext["type"] = "shortcut"
+                    result["shortcuts"].append(ext)
+
+        return result
+
 registry = Registry()
