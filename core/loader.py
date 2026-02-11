@@ -6,15 +6,18 @@ from typing import List, Optional
 from pydantic import BaseModel, Field
 import pluggy
 from loguru import logger
+from packaging.specifiers import SpecifierSet
 from core.hooks import PluginSpec
 from core.registry import registry
 from core.schemas import PluginUI
 from core.dashboard import dashboard, console
+from core.sdk import VERSION as SDK_VERSION
 from rich.panel import Panel
 
 class PluginManifest(BaseModel):
     id: str
     version: str = "1.0.0"
+    compatibility_version: str = ">=1.0.0"
     author: str = "Unknown"
     description: str = ""
     capabilities: List[str] = Field(default_factory=list)
@@ -57,6 +60,16 @@ class PluginLoader:
             with open(manifest_path, "r") as f:
                 manifest_data = json.load(f)
             manifest = PluginManifest(**manifest_data)
+
+            # 1.5 Version Compatibility Check
+            try:
+                spec = SpecifierSet(manifest.compatibility_version)
+                if SDK_VERSION not in spec:
+                    logger.error(f"Plugin {manifest.id} requires SDK version {manifest.compatibility_version}, but current version is {SDK_VERSION}. Skipping.")
+                    return
+            except Exception as e:
+                logger.error(f"Invalid compatibility_version '{manifest.compatibility_version}' in plugin {manifest.id}: {e}")
+                return
 
             # 2. Dynamic Import
             module_file = os.path.join(plugin_path, "backend.py")

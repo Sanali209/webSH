@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field, ConfigDict
-from typing import Any, List, Optional, Dict
+from typing import Any, List, Optional, Dict, Literal
 import uuid
 from datetime import datetime
 
@@ -23,18 +23,27 @@ class CapabilityEnvelope(BaseModel):
 
 class WidgetSchema(BaseModel):
     id: str
-    type: str
-    name: str
-    description: Optional[str] = None
-    model_config = ConfigDict(extra='allow')
+    size: Literal["1x1", "2x2", "2x1", "4x2"]
+    entry_point: str
+    title: str
+
+    model_config = ConfigDict(extra='forbid')
 
 class ViewSchema(BaseModel):
     id: str
-    type: str
-    name: str
-    path: str
-    model_config = ConfigDict(extra='allow')
+    title: str
+    entry_point: str
+
+    model_config = ConfigDict(extra='forbid')
+
+class ShortcutSchema(BaseModel):
+    icon: str
+    title: str
+    action: str
+
+    model_config = ConfigDict(extra='forbid')
 
 class PluginUI(BaseModel):
     widgets: List[WidgetSchema] = Field(default_factory=list)
     views: List[ViewSchema] = Field(default_factory=list)
+    shortcuts: List[ShortcutSchema] = Field(default_factory=list)
