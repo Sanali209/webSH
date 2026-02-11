@@ -47,3 +47,19 @@ class PluginUI(BaseModel):
     widgets: List[WidgetSchema] = Field(default_factory=list)
     views: List[ViewSchema] = Field(default_factory=list)
     shortcuts: List[ShortcutSchema] = Field(default_factory=list)
+
+class WidgetConfig(BaseModel):
+    id: str
+    x: int
+    y: int
+    w: int
+    h: int
+    type: str
+    label: Optional[str] = None
+    icon: Optional[str] = None
+    component: Optional[str] = None
+    props: Optional[str] = None
+
+class DesktopConfig(BaseModel):
+    id: int
+    widgets: List[WidgetConfig]

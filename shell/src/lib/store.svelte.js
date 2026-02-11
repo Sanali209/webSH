@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { loadState } from './services/uiManager.ts';
 
 export const appState = $state({
     activeDesktop: 1,
@@ -48,11 +49,15 @@ export const initSystem = async () => {
         const response = await axios.get('/api/v1/plugins');
         appState.plugins = response.data;
         console.log('Plugins loaded:', appState.plugins);
+
+        // 2. Load Desktop State
+        await loadState();
+
     } catch (e) {
-        console.error('Failed to load plugins:', e);
+        console.error('Failed to load plugins or state:', e);
     }
 
-    // 2. WebSocket Connection
+    // 3. WebSocket Connection
     connectWebSocket();
 };
 

@@ -12,12 +12,16 @@ from core.settings import settings
 from core.dashboard import dashboard, console
 from rich.live import Live
 from fastapi.responses import ORJSONResponse
-from core.schemas import CapabilityEnvelope, Context
+from core.schemas import CapabilityEnvelope, Context, DesktopConfig
 from core.switchboard import switchboard
 from core.registry import registry
+from typing import List
+import lancedb
+from lancedb.pydantic import pydantic_to_schema
 
 # Subsystem instances
 redis_client = None
+desktop_db = None
 from core.loader import loader
 
 async def check_infrastructure():
@@ -68,6 +72,25 @@ async def lifespan(app: FastAPI):
     from core.executor import broker
     await broker.startup()
     dashboard.update_status("Executor", "Started")
+
+    # Initialize Desktop DB
+    global desktop_db
+    try:
+        os.makedirs("data", exist_ok=True)
+        desktop_db = lancedb.connect("data/desktop.lancedb")
+
+        tables = desktop_db.list_tables()
+        # Handle recent lancedb versions returning object with tables attribute
+        table_names = tables.tables if hasattr(tables, "tables") else tables
+
+        if "desktop_state" not in table_names:
+            # Create empty table
+            desktop_db.create_table("desktop_state", schema=pydantic_to_schema(DesktopConfig))
+
+        dashboard.update_status("DesktopDB", "Ready")
+    except Exception as e:
+        logger.error(f"Failed to init desktop db: {e}")
+        dashboard.update_status("DesktopDB", "Error")
     
     yield
     
@@ -220,6 +243,44 @@ async def health_ui_check(plugin_id: str):
         return {"status": "available", "files": {"index.js": index_exists, "manifest.json": manifest_exists}}
     else:
         return ORJSONResponse(status_code=404, content={"status": "assets_missing"})
+
+@app.post("/api/v1/desktop/sync")
+async def sync_desktop(desktops: List[DesktopConfig]):
+    try:
+        # Overwrite all.
+        if desktops:
+            # When providing data (list of pydantic models), lancedb can infer schema or take schema
+            # pydantic_to_schema returns pyarrow schema which create_table accepts
+            # We convert models to dicts to ensure compatibility
+            data = [d.model_dump() for d in desktops]
+            # Try letting lancedb infer schema from data to avoid pyarrow compatibility issues
+            desktop_db.create_table("desktop_state", data=data, mode="overwrite")
+        else:
+            desktop_db.create_table("desktop_state", schema=pydantic_to_schema(DesktopConfig), mode="overwrite")
+
+        return {"status": "synced", "count": len(desktops)}
+    except Exception as e:
+        logger.error(f"Sync error: {e}")
+        return ORJSONResponse(status_code=500, content={"error": str(e)})
+
+@app.get("/api/v1/desktop/sync", response_model=List[DesktopConfig])
+async def get_desktop_state():
+    try:
+        if not desktop_db:
+            return []
+
+        tables = desktop_db.list_tables()
+        table_names = tables.tables if hasattr(tables, "tables") else tables
+
+        if "desktop_state" not in table_names:
+            return []
+
+        tbl = desktop_db.open_table("desktop_state")
+        # to_pylist() should return list of dicts which pydantic response_model will validate
+        return tbl.to_arrow().to_pylist()
+    except Exception as e:
+        logger.error(f"Get state error: {e}")
+        return []
 
 if __name__ == "__main__":
     import uvicorn

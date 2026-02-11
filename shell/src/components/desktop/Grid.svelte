@@ -1,9 +1,7 @@
 <script>
-    import {
-        appState,
-        moveWidget,
-        executeShortcut,
-    } from "../../lib/store.svelte.js";
+    import { uiState } from "../../lib/stores/ui.svelte.ts";
+    import { syncWithBackend } from "../../lib/services/uiManager.ts";
+    import { executeShortcut } from "../../lib/store.svelte.js";
     import { File, Settings, StickyNote, Trash } from "lucide-svelte";
     import WidgetLoader from "./WidgetLoader.svelte";
 
@@ -15,9 +13,8 @@
     const ROWS = 8;
 
     // Active desktop widgets
-    let widgets = $derived(
-        appState.desktopWidgets[appState.activeDesktop] || [],
-    );
+    let activeDesktopObj = $derived(uiState.desktops.find(d => d.id === uiState.activeDesktop));
+    let widgets = $derived(activeDesktopObj ? activeDesktopObj.widgets : []);
 
     const getIcon = (name) => {
         switch (name) {
@@ -59,9 +56,13 @@
 
     const handleDrop = (e) => {
         e.preventDefault();
-        if (ghost) {
-            // TODO: Add collision check here
-            moveWidget(appState.activeDesktop, dragging.id, ghost.x, ghost.y);
+        if (ghost && dragging && activeDesktopObj) {
+            const w = activeDesktopObj.widgets.find(w => w.id === dragging.id);
+            if (w) {
+                w.x = ghost.x;
+                w.y = ghost.y;
+                syncWithBackend();
+            }
         }
         dragging = null;
         ghost = null;
@@ -74,6 +75,14 @@
 
     const handleDblClick = (widget) => {
         executeShortcut(widget.id);
+    };
+
+    const getProps = (p) => {
+        if (!p) return {};
+        if (typeof p === 'string') {
+            try { return JSON.parse(p); } catch { return {}; }
+        }
+        return p;
     };
 </script>
 
@@ -122,7 +131,7 @@
                     <div class="body">
                         <WidgetLoader
                             component={widget.component}
-                            props={widget.props || {}}
+                            props={getProps(widget.props)}
                         />
                     </div>
                 </div>

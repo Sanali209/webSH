@@ -1,6 +1,6 @@
 <script>
     import { Bell, Wifi, Battery } from "lucide-svelte";
-    import { appState } from "../../lib/store.svelte.js";
+    import { uiState } from "../../lib/stores/ui.svelte.ts";
 
     let time = $state(new Date().toLocaleTimeString());
 
@@ -14,7 +14,7 @@
 
 <header class="topbar">
     <div class="left">
-        <h3>Desktop {appState.activeDesktop}</h3>
+        <h3>Desktop {uiState.activeDesktop}</h3>
     </div>
 
     <div class="center">
