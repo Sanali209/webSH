@@ -26,6 +26,15 @@ class WidgetSchema(BaseModel):
     size: Literal["1x1", "2x2", "2x1", "4x2"]
     entry_point: str
     title: str
+    type: Literal["widget"] = "widget"
+
+    model_config = ConfigDict(extra='forbid')
+
+class TopBarItemSchema(BaseModel):
+    id: str
+    entry_point: str
+    component: Optional[str] = None
+    type: Literal["top_bar.item"] = "top_bar.item"
 
     model_config = ConfigDict(extra='forbid')
 
@@ -47,6 +56,7 @@ class PluginUI(BaseModel):
     widgets: List[WidgetSchema] = Field(default_factory=list)
     views: List[ViewSchema] = Field(default_factory=list)
     shortcuts: List[ShortcutSchema] = Field(default_factory=list)
+    top_bar: List[TopBarItemSchema] = Field(default_factory=list)
 
 class WidgetConfig(BaseModel):
     id: str

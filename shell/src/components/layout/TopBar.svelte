@@ -1,14 +1,21 @@
-<script>
+<script lang="ts">
     import { Bell, Wifi, Battery } from "lucide-svelte";
     import { uiState } from "../../lib/stores/ui.svelte.ts";
+    import { loadExtensions, type Extension } from "../../lib/services/extensionLoader";
+    import { onMount } from "svelte";
 
     let time = $state(new Date().toLocaleTimeString());
+    let topBarExtensions = $state<Extension[]>([]);
 
     $effect(() => {
         const interval = setInterval(() => {
             time = new Date().toLocaleTimeString();
         }, 1000);
         return () => clearInterval(interval);
+    });
+
+    onMount(async () => {
+        topBarExtensions = await loadExtensions("top_bar.item");
     });
 </script>
 
@@ -22,6 +29,15 @@
     </div>
 
     <div class="right">
+        {#each topBarExtensions as ext (ext.id)}
+            {#if ext.component}
+                {@const Component = ext.component}
+                <div class="extension-item">
+                    <Component />
+                </div>
+            {/if}
+        {/each}
+
         <div class="status-item">
             <Wifi size={16} />
         </div>
@@ -74,5 +90,10 @@
     .icon-btn:hover {
         background: var(--bg-hover);
         color: var(--text-primary);
+    }
+
+    .extension-item {
+        display: flex;
+        align-items: center;
     }
 </style>
