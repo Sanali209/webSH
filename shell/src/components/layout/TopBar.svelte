@@ -1,7 +1,9 @@
 <script lang="ts">
-    import { Bell, Wifi, Battery } from "lucide-svelte";
+    import { Bell, Wifi, Battery, Plus } from "lucide-svelte";
     import { uiState } from "../../lib/stores/ui.svelte.ts";
     import { loadExtensions, type Extension } from "../../lib/services/extensionLoader";
+    import { openModal } from "../../lib/modal.svelte.js";
+    import AddWidgetDialog from "../AddWidgetDialog.svelte";
     import { onMount } from "svelte";
 
     let time = $state(new Date().toLocaleTimeString());
@@ -29,6 +31,10 @@
     </div>
 
     <div class="right">
+        <button class="icon-btn" onclick={() => openModal(AddWidgetDialog, {}, "Add Item")} aria-label="Add Widget">
+            <Plus size={18} />
+        </button>
+
         {#each topBarExtensions as ext (ext.id)}
             {#if ext.component}
                 {@const Component = ext.component}
