@@ -1,21 +1,17 @@
 # Stage 1: Build Svelte frontend
-FROM node:20-alpine AS ui-builder
+FROM node:20-alpine AS builder
 
 # Set working directory for build
-WORKDIR /app
-
-# Install pnpm
-RUN npm install -g pnpm
+WORKDIR /app/shell
 
 # Copy package files first to leverage cache
-COPY shell/package.json shell/package-lock.json ./shell/
+COPY shell/package.json shell/pnpm-lock.yaml ./
 
 # Install dependencies
-WORKDIR /app/shell
-RUN pnpm install
+RUN npm install -g pnpm && pnpm install --frozen-lockfile
 
 # Copy the rest of the frontend source code
-COPY shell/ .
+COPY shell/ ./
 
 # Build the frontend
 RUN pnpm build
@@ -24,22 +20,27 @@ RUN pnpm build
 # Stage 2: Runtime environment
 FROM python:3.11-slim AS runtime
 
-# Create a non-root user
-RUN useradd -m -u 1000 appuser
-
 WORKDIR /app
 
 # Install Python dependencies
-COPY requirements.txt .
+COPY requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy frontend build artifacts from builder stage
-COPY --from=ui-builder --chown=appuser:appuser /app/shell/dist ./dist
-
 # Copy backend source code
-COPY --chown=appuser:appuser core ./core
-COPY --chown=appuser:appuser plugins ./plugins
-COPY --chown=appuser:appuser main.py .
+COPY core/ ./core
+COPY plugins/ ./plugins
+
+# Copy main.py to core/main.py to align with CMD
+COPY main.py ./core/main.py
+
+# Copy frontend build artifacts from builder stage
+COPY --from=builder /app/shell/dist ./dist
+
+# Create persistence directory
+RUN mkdir data
+
+# Create a non-root user
+RUN useradd -m -u 1000 appuser && chown -R appuser:appuser /app
 
 # Set environment variables
 ENV PYTHONPATH=/app
@@ -52,4 +53,4 @@ EXPOSE 7860
 USER appuser
 
 # Run the application
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "7860"]
+CMD ["uvicorn", "core.main:app", "--host", "0.0.0.0", "--port", "7860"]
