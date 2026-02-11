@@ -8,6 +8,7 @@ import pluggy
 from loguru import logger
 from core.hooks import PluginSpec
 from core.registry import registry
+from core.schemas import PluginUI
 from core.dashboard import dashboard, console
 from rich.panel import Panel
 
@@ -17,6 +18,7 @@ class PluginManifest(BaseModel):
     author: str = "Unknown"
     description: str = ""
     capabilities: List[str] = Field(default_factory=list)
+    ui: Optional[PluginUI] = None
 
 class PluginLoader:
     def __init__(self, plugins_dir: str = "plugins"):
@@ -81,6 +83,10 @@ class PluginLoader:
             
             # 4. Register with Registry
             registry.register_plugin(manifest.model_dump())
+
+            # 5. Register UI Extensions
+            if manifest.ui:
+                registry.register_ui_extension(manifest.id, manifest.ui.model_dump())
             
             logger.info(f"Successfully loaded plugin: {manifest.id} (v{manifest.version})")
 

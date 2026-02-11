@@ -12,6 +12,8 @@ class Registry:
         self._latest_versions: Dict[str, str] = {}
         # Stores plugin metadata
         self._plugins: Dict[str, Any] = {}
+        # Stores UI extensions
+        self._ui_extensions: Dict[str, Any] = {}
 
     def register(self, domain: str, version: str, handler: Callable, schema: Optional[Type[BaseModel]] = None):
         key = f"{domain}@{version}"
@@ -66,5 +68,18 @@ class Registry:
 
     def list_plugins(self) -> List[Dict[str, Any]]:
         return list(self._plugins.values())
+
+    def register_ui_extension(self, plugin_id: str, ui_data: Dict[str, Any]):
+        """
+        Registers UI extensions for a plugin.
+        """
+        self._ui_extensions[plugin_id] = ui_data
+        logger.info(f"Registered UI extensions for plugin: {plugin_id}")
+
+    def get_ui_extensions(self) -> Dict[str, Any]:
+        """
+        Returns all registered UI extensions.
+        """
+        return self._ui_extensions
 
 registry = Registry()
