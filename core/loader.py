@@ -24,6 +24,7 @@ class PluginLoader:
         self.pm = pluggy.PluginManager("sh")
         self.pm.add_hookspecs(PluginSpec)
         self.loaded_plugins = []
+        self.plugin_paths = {}
 
     def discover_and_load(self):
         if not os.path.exists(self.plugins_dir):
@@ -76,6 +77,7 @@ class PluginLoader:
 
             self.pm.register(plugin_instance)
             self.loaded_plugins.append(manifest.id)
+            self.plugin_paths[manifest.id] = plugin_path
             
             # 4. Register with Registry
             registry.register_plugin(manifest.model_dump())
