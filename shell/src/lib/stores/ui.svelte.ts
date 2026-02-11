@@ -24,7 +24,13 @@ export class UIState {
 
     constructor() {
         // Initialize with at least one desktop
-        this.desktops = [{ id: 0, widgets: [] }];
+        this.desktops = [{
+            id: 0,
+            widgets: [
+                { id: '1', x: 0, y: 0, w: 1, h: 1, type: 'icon', label: 'Test Icon', icon: 'file' },
+                { id: '2', x: 2, y: 0, w: 2, h: 2, type: 'widget', label: 'Test Widget', component: 'Clock' }
+            ]
+        }];
     }
 
     setActiveDesktop(id: number) {
