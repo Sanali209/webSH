@@ -15,5 +15,19 @@ export default defineConfig({
         ws: true,
       }
     }
+  },
+  esbuild: {
+    target: 'esnext',
+    tsconfigRaw: {
+        compilerOptions: {
+            useDefineForClassFields: true
+        }
+    }
+  },
+  test: {
+    globals: true,
+    environment: 'jsdom',
+    setupFiles: './src/setupTests.ts',
+    include: ['src/**/*.{test,spec}.{js,ts}'],
   }
 })

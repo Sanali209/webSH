@@ -4,9 +4,13 @@
   import Grid from "./components/desktop/Grid.svelte";
   import ModalContainer from "./components/system/ModalContainer.svelte";
   import { appState, initSystem } from "./lib/store.svelte.js";
+  import ErrorBoundary from "./lib/components/ErrorBoundary.svelte";
+  import WidgetSkeleton from "./lib/components/WidgetSkeleton.svelte";
+  import { uiState } from "./lib/stores/ui.svelte.ts";
 
   $effect(() => {
     initSystem();
+    console.log("New UI State Active Desktop:", uiState.activeDesktop);
   });
 </script>
 
@@ -18,6 +22,13 @@
     <TopBar />
 
     <div class="viewport">
+      <!-- Demo for E2E testing of new architecture -->
+      <div id="skeleton-demo" style="height: 200px; width: 200px; margin: 20px; border: 1px dashed #444;">
+          <ErrorBoundary>
+              <WidgetSkeleton />
+          </ErrorBoundary>
+      </div>
+
       <Grid />
     </div>
   </div>
