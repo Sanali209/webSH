@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shortcut Widget</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lucide-static@0.321.0/font/lucide.min.css">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: transparent;
+            font-family: 'Segoe UI', sans-serif;
+            overflow: hidden;
+            user-select: none;
+            cursor: pointer;
+        }
+
+        .shortcut-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            width: 100%;
+            height: 100%;
+            border-radius: 8px;
+            transition: background-color 0.2s;
+        }
+
+        .shortcut-container:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .icon {
+            font-size: 24px;
+            /* Fallback size */
+            color: #ffffff;
+            /* In a real scenario, we might fetch SVG or use an icon font */
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Lucide icon styling wrapper if we inject SVG */
+        .icon svg {
+            width: 100%;
+            height: 100%;
+        }
+
+        .label {
+            font-size: 0.8rem;
+            color: #f8fafc;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+            text-align: center;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 90%;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="shortcut-container" id="container">
+        <div class="icon" id="icon">
+            <!-- Default Icon: Box -->
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path
+                    d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z" />
+                <path d="m3.3 7 8.7 5 8.7-5" />
+                <path d="M12 22v-9" />
+            </svg>
+        </div>
+        <div class="label" id="label">Shortcut</div>
+    </div>
+
+    <script>
+        const container = document.getElementById('container');
+        const iconContainer = document.getElementById('icon');
+        const labelElement = document.getElementById('label');
+
+        // Handle clicks
+        container.addEventListener('click', () => {
+            // Send execute event to parent
+            window.parent.postMessage({ type: 'bg:execute', action: 'shortcut_click' }, '*');
+            console.log("Shortcut clicked");
+        });
+
+        // Listen for configuration
+        window.addEventListener('message', (event) => {
+            const data = event.data;
+            if (data.type === 'configure') {
+                if (data.label) labelElement.textContent = data.label;
+                // Future: update icon based on data.icon name
+            }
+        });
+    </script>
+</body>
+
+</html>

@@ -1,26 +1,26 @@
-<script lang="ts">
-  import { onMount, onDestroy } from 'svelte';
-  import { createConnection, type WidgetConnection } from '../lib/services/widgetBridge';
+<script>
+  import { onMount, onDestroy } from "svelte";
+  import { createConnection } from "../lib/services/widgetBridge";
 
   let { src } = $props();
 
-  let iframeElement: HTMLIFrameElement = $state(null);
-  let connection: WidgetConnection | null = null;
+  let iframeElement = $state(null);
+  let connection = null;
 
   // Mock methods for now, or use real services if available
   const methods = {
-    getApiToken: () => 'mock-api-token',
-    getDesktopId: () => 'mock-desktop-id',
-    emitEvent: (name: string, data: any) => {
-      console.log('Event from widget:', name, data);
-    }
+    getApiToken: () => "mock-api-token",
+    getDesktopId: () => "mock-desktop-id",
+    emitEvent: (name, data) => {
+      console.log("Event from widget:", name, data);
+    },
   };
 
   onMount(() => {
     if (iframeElement) {
       connection = createConnection(iframeElement, methods);
       connection.promise.catch((err) => {
-          console.error('Failed to connect to widget:', err);
+        console.error("Failed to connect to widget:", err);
       });
     }
   });

@@ -1,0 +1,17 @@
+{
+    "id": "clock",
+    "version": "1.0.0",
+    "name": "Clock",
+    "description": "A simple desktop clock widget.",
+    "author": "WebSH",
+    "ui": {
+        "widgets": [
+            {
+                "id": "clock.widget",
+                "size": "2x2",
+                "entry_point": "/plugins/clock/ui/index.html",
+                "title": "Clock"
+            }
+        ]
+    }
+}

@@ -1,0 +1,97 @@
+
+> shell@0.0.0 dev
+> vite --open
+
+Port 5173 is in use, trying another one...
+Port 5174 is in use, trying another one...
+
+  [32m[1mVITE[22m v7.3.1[39m  [2mready in [0m[1m1016[22m[2m[0m ms[22m
+
+  [32m➜[39m  [1mLocal[22m:   [36mhttp://localhost:[1m5175[22m/[39m
+[2m  [32m➜[39m  [1mNetwork[22m[2m: use [22m[1m--host[22m[2m to expose[22m
+[2m[32m  ➜[39m[22m[2m  press [22m[1mh + enter[22m[2m to show help[22m
+04:22:30 [vite-plugin-svelte] src/components/system/ModalContainer.svelte:7:4 Visible, non-interactive elements with a click event must be accompanied by a keyboard event handler. Consider whether an interactive element such as `<button type="button">` or `<a>` might be more appropriate. See https://svelte.dev/docs/accessibility-warnings#a11y-click-events-have-key-events for more details
+04:22:30 [vite-plugin-svelte] src/components/system/ModalContainer.svelte:7:4 Non-interactive element `<div>` should not be assigned mouse or keyboard event listeners
+04:22:30 [vite-plugin-svelte] src/components/system/ModalContainer.svelte:8:8 Visible, non-interactive elements with a click event must be accompanied by a keyboard event handler. Consider whether an interactive element such as `<button type="button">` or `<a>` might be more appropriate. See https://svelte.dev/docs/accessibility-warnings#a11y-click-events-have-key-events for more details
+04:22:30 [vite-plugin-svelte] src/components/system/ModalContainer.svelte:8:8 `<div>` with a click handler must have an ARIA role
+[2m04:22:30[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [33mwarning: 
+[36mD:/github/webSH/shell/src/components/desktop/WidgetLoader.svelte[33m
+[0m36 |  				if ($$props.component.startsWith("/") || $$props.component.startsWith("http")) {
+37 |  					/* @vite-ignore */
+38 |  					const mod = await import($$props.component);
+   |                                ^^^^^^^^^^^^^^^^^
+39 |  
+40 |  					$.set(Widget, $.proxy(mod.default || mod, null, Widget));[0m[33m
+The above dynamic import cannot be analyzed by Vite.
+See [34mhttps://github.com/rollup/plugins/tree/master/packages/dynamic-import-vars#limitations[33m for supported dynamic import formats. If this is intended to be left as-is, you can use the /* @vite-ignore */ comment inside the import() call to suppress this warning.
+[33m[39m
+  Plugin: [35mvite:import-analysis[39m
+  File: [36mD:/github/webSH/shell/src/components/desktop/WidgetLoader.svelte[39m
+INFO:     Started server process [20396]
+INFO:     Waiting for application startup.
+[32m2026-02-12 04:22:30.941[0m | [1mINFO    [0m | [36mcore.tracing[0m:[36msetup_tracing[0m:[36m60[0m - [1mTracing initialized. Exporting to http://localhost:4317[0m
+[32m2026-02-12 04:22:30.944[0m | [34m[1mDEBUG   [0m | [36mcore.registry[0m:[36mregister_plugin[0m:[36m64[0m - [34m[1mRegistered plugin metadata: hello_world[0m
+[32m2026-02-12 04:22:30.944[0m | [1mINFO    [0m | [36mcore.loader[0m:[36m_load_plugin[0m:[36m111[0m - [1mSuccessfully loaded plugin: hello_world (v1.0.0)[0m
+Traceback (most recent call last):
+  File "D:\github\webSH\core\loader.py", line 85, in _load_plugin
+    spec.loader.exec_module(module)
+  File "<frozen importlib._bootstrap_external>", line 940, in exec_module
+  File "<frozen importlib._bootstrap>", line 241, in _call_with_frames_removed
+  File "D:\github\webSH\plugins\system_executor\backend.py", line 15, in <module>
+    @broker.task
+     ^^^^^^^^^^^
+  File "D:\github\webSH\venv\Lib\site-packages\taskiq\abc\broker.py", line 355, in task
+    return make_decorated_task(
+           ^^^^^^^^^^^^^^^^^^^^
+  File "D:\github\webSH\venv\Lib\site-packages\taskiq\abc\broker.py", line 337, in inner
+    self.decorator_class(
+  File "D:\github\webSH\venv\Lib\site-packages\taskiq\decor.py", line 85, in __init__
+    sys.modules[original_func.__module__],
+    ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+KeyError: 'system_executor'
+==========================================
+   WebSH Development Server (Python)      
+==========================================
+[1/2] Starting Frontend in D:\github\webSH\shell...
+[2/2] Starting Backend (Main Process)...
+      (Attach your debugger to this process)
+┌─────────────────────────── Plugin Loading Error ────────────────────────────┐
+│ Failed to load plugin at plugins\system_executor                            │
+│ Error: 'system_executor'                                                    │
+│ Plugin ID: system_executor                                                  │
+└─────────────────────────────────────────────────────────────────────────────┘
+[32m2026-02-12 04:22:31.507[0m | [31m[1mERROR   [0m | [36mcore.loader[0m:[36m_load_plugin[0m:[36m123[0m - [31m[1mFailed to load plugin at plugins\system_executor: 'system_executor'[0m
+[32m2026-02-12 04:22:31.529[0m | [34m[1mDEBUG   [0m | [36mcore.registry[0m:[36mregister_plugin[0m:[36m64[0m - [34m[1mRegistered plugin metadata: system_fs[0m
+[32m2026-02-12 04:22:31.529[0m | [1mINFO    [0m | [36mcore.loader[0m:[36m_load_plugin[0m:[36m111[0m - [1mSuccessfully loaded plugin: system_fs (v1.0.0)[0m
+[32m2026-02-12 04:22:31.530[0m | [1mINFO    [0m | [36msystem_logger[0m:[36m__init__[0m:[36m34[0m - [1mSystem Logger initialized with OpenTelemetry bridge[0m
+[32m2026-02-12 04:22:31.531[0m | [34m[1mDEBUG   [0m | [36mcore.registry[0m:[36mregister_plugin[0m:[36m64[0m - [34m[1mRegistered plugin metadata: system_logger[0m
+[32m2026-02-12 04:22:31.531[0m | [1mINFO    [0m | [36mcore.loader[0m:[36m_load_plugin[0m:[36m111[0m - [1mSuccessfully loaded plugin: system_logger (v1.0.0)[0m
+[32m2026-02-12 04:22:31.538[0m | [1mINFO    [0m | [36msystem_storage[0m:[36m_init_db[0m:[36m42[0m - [1mLanceDB connected at data\system_storage.lancedb[0m
+[32m2026-02-12 04:22:31.538[0m | [34m[1mDEBUG   [0m | [36mcore.registry[0m:[36mregister_plugin[0m:[36m64[0m - [34m[1mRegistered plugin metadata: system_storage[0m
+[32m2026-02-12 04:22:31.539[0m | [1mINFO    [0m | [36mcore.loader[0m:[36m_load_plugin[0m:[36m111[0m - [1mSuccessfully loaded plugin: system_storage (v1.0.0)[0m
+[32m2026-02-12 04:22:31.546[0m | [34m[1mDEBUG   [0m | [36mcore.registry[0m:[36mregister_plugin[0m:[36m64[0m - [34m[1mRegistered plugin metadata: system_transport[0m
+[32m2026-02-12 04:22:31.546[0m | [1mINFO    [0m | [36mcore.loader[0m:[36m_load_plugin[0m:[36m111[0m - [1mSuccessfully loaded plugin: system_transport (v1.0.0)[0m
+[32m2026-02-12 04:22:31.548[0m | [34m[1mDEBUG   [0m | [36mcore.registry[0m:[36mregister_plugin[0m:[36m64[0m - [34m[1mRegistered plugin metadata: test_plugin[0m
+[32m2026-02-12 04:22:31.548[0m | [1mINFO    [0m | [36mcore.loader[0m:[36m_load_plugin[0m:[36m111[0m - [1mSuccessfully loaded plugin: test_plugin (v1.0.0)[0m
+[32m2026-02-12 04:22:31.550[0m | [1mINFO    [0m | [36mcore.registry[0m:[36mregister[0m:[36m28[0m - [1mRegistered capability: test.ping@1.0.0 (Schema: Yes)[0m
+[32m2026-02-12 04:22:31.550[0m | [1mINFO    [0m | [36mcore.registry[0m:[36mregister[0m:[36m28[0m - [1mRegistered capability: storage.batch_insert@1.0.0 (Schema: No)[0m
+[32m2026-02-12 04:22:31.550[0m | [1mINFO    [0m | [36mcore.registry[0m:[36mregister[0m:[36m28[0m - [1mRegistered capability: storage.get@1.0.0 (Schema: Yes)[0m
+[32m2026-02-12 04:22:31.550[0m | [1mINFO    [0m | [36mcore.registry[0m:[36mregister[0m:[36m28[0m - [1mRegistered capability: storage.search@1.0.0 (Schema: Yes)[0m
+[32m2026-02-12 04:22:31.550[0m | [1mINFO    [0m | [36mcore.registry[0m:[36mregister[0m:[36m28[0m - [1mRegistered capability: storage.set@1.0.0 (Schema: Yes)[0m
+[32m2026-02-12 04:22:31.550[0m | [1mINFO    [0m | [36mcore.registry[0m:[36mregister[0m:[36m28[0m - [1mRegistered capability: fs.hash@1.0.0 (Schema: Yes)[0m
+[32m2026-02-12 04:22:31.550[0m | [1mINFO    [0m | [36mcore.registry[0m:[36mregister[0m:[36m28[0m - [1mRegistered capability: fs.list@1.0.0 (Schema: Yes)[0m
+[32m2026-02-12 04:22:31.551[0m | [1mINFO    [0m | [36mcore.registry[0m:[36mregister[0m:[36m28[0m - [1mRegistered capability: fs.read@1.0.0 (Schema: Yes)[0m
+[32m2026-02-12 04:22:31.551[0m | [1mINFO    [0m | [36mcore.registry[0m:[36mregister[0m:[36m28[0m - [1mRegistered capability: fs.write@1.0.0 (Schema: Yes)[0m
+[32m2026-02-12 04:22:31.551[0m | [1mINFO    [0m | [36mcore.registry[0m:[36mregister[0m:[36m28[0m - [1mRegistered capability: hello.ping@1.0.0 (Schema: Yes)[0m
+[32m2026-02-12 04:22:31.551[0m | [1mINFO    [0m | [36mcore.loader[0m:[36mdiscover_and_load[0m:[36m51[0m - [1mPlugin initialization complete. Total: 6[0m
+[32m2026-02-12 04:22:31.587[0m | [1mINFO    [0m | [36mhello_world[0m:[36mon_activate[0m:[36m10[0m - [1mHelloWorld: Activated! Hello World initialized.[0m
+[32m2026-02-12 04:22:31.631[0m | [1mINFO    [0m | [36mmain[0m:[36mcheck_infrastructure[0m:[36m36[0m - [1mSuccessfully connected to Redis[0m
+[32m2026-02-12 04:22:31.631[0m | [1mINFO    [0m | [36mmain[0m:[36mcheck_infrastructure[0m:[36m44[0m - [1mTracing initialized[0m
+INFO:     Application startup complete.
+ERROR:    [Errno 10048] error while attempting to bind on address ('127.0.0.1', 8000): обычно разрешается только одно использование адреса сокета (протокол/сетевой адрес/порт)
+INFO:     Waiting for application shutdown.
+[32m2026-02-12 04:22:31.637[0m | [1mINFO    [0m | [36mmain[0m:[36mlifespan[0m:[36m102[0m - [1mKernel shutdown complete[0m
+INFO:     Application shutdown complete.
+Cleaning up frontend process...
+Shutdown complete.
+^C

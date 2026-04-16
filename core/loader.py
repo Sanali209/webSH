@@ -1,4 +1,5 @@
 import os
+import sys
 import json
 import importlib.util
 import traceback
@@ -82,6 +83,7 @@ class PluginLoader:
 
             spec = importlib.util.spec_from_file_location(manifest.id, module_file)
             module = importlib.util.module_from_spec(spec)
+            sys.modules[manifest.id] = module
             spec.loader.exec_module(module)
 
             # 3. Register with Pluggy

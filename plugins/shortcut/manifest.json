@@ -1,0 +1,17 @@
+{
+    "id": "shortcut",
+    "version": "1.0.0",
+    "name": "Shortcut",
+    "description": "A clickable shortcut widget.",
+    "author": "WebSH",
+    "ui": {
+        "widgets": [
+            {
+                "id": "shortcut.widget",
+                "size": "1x1",
+                "entry_point": "/plugins/shortcut/ui/index.html",
+                "title": "Shortcut"
+            }
+        ]
+    }
+}

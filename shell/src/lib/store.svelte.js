@@ -8,12 +8,7 @@ export const appState = $state({
     notifications: [],
     isConnected: false,
     desktopWidgets: {
-        1: [
-            { id: 'trash', x: 0, y: 0, w: 1, h: 1, type: 'icon', label: 'Trash', icon: 'trash' },
-            { id: 'settings', x: 0, y: 1, w: 1, h: 1, type: 'icon', label: 'Settings', icon: 'settings' },
-            { id: 'clock', x: 1, y: 0, w: 2, h: 2, type: 'widget', label: 'Clock', component: 'ClockWidget' },
-            { id: 'inspector', x: -1, y: -1, w: 0, h: 0, type: 'headless', label: 'System Inspector', component: 'SystemInspector' }
-        ],
+        1: [],
         2: [],
         3: [],
         4: [],

@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clock Widget</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: transparent; /* Let container background show */
+            color: #ffffff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow: hidden;
+        }
+
+        .clock-container {
+            text-align: center;
+        }
+
+        .time {
+            font-size: 3rem;
+            font-weight: 300;
+            letter-spacing: 2px;
+        }
+
+        .date {
+            font-size: 1rem;
+            color: #cccccc;
+            margin-top: 5px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+    </style>
+</head>
+<body>
+    <div class="clock-container">
+        <div class="time" id="time">--:--</div>
+        <div class="date" id="date">Loading...</div>
+    </div>
+
+    <script>
+        function updateClock() {
+            const now = new Date();
+            const timeElement = document.getElementById('time');
+            const dateElement = document.getElementById('date');
+
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            // const seconds = String(now.getSeconds()).padStart(2, '0');
+            
+            timeElement.textContent = `${hours}:${minutes}`;
+            
+            const options = { weekday: 'short', month: 'short', day: 'numeric' };
+            dateElement.textContent = now.toLocaleDateString(undefined, options);
+        }
+
+        setInterval(updateClock, 1000);
+        updateClock(); // Initial call
+        
+        // Listen for resize or init events if needed
+        window.addEventListener('message', (event) => {
+             // Handle communication from host
+             console.log("Clock received message:", event.data);
+        });
+    </script>
+</body>
+</html>

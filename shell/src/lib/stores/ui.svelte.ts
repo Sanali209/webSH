@@ -27,8 +27,8 @@ export class UIState {
         this.desktops = [{
             id: 0,
             widgets: [
-                { id: '1', x: 0, y: 0, w: 1, h: 1, type: 'icon', label: 'Test Icon', icon: 'file' },
-                { id: '2', x: 2, y: 0, w: 2, h: 2, type: 'widget', label: 'Test Widget', component: 'Clock' }
+                { id: '1', x: 0, y: 0, w: 1, h: 1, type: 'icon', label: 'My Docs', component: '/plugins/shortcut/ui/index.html' },
+                { id: '2', x: 2, y: 0, w: 2, h: 2, type: 'widget', label: 'Clock', component: '/plugins/clock/ui/index.html' }
             ]
         }];
     }

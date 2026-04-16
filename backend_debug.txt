@@ -1,0 +1,229 @@
+INFO:     Started server process [20776]
+INFO:     Waiting for application startup.
+[32m2026-02-12 04:46:27.653[0m | [1mINFO    [0m | [36mcore.tracing[0m:[36msetup_tracing[0m:[36m60[0m - [1mTracing initialized. Exporting to http://localhost:4317[0m
+Traceback (most recent call last):
+  File "D:\github\webSH\core\loader.py", line 63, in _load_plugin
+    manifest = PluginManifest(**manifest_data)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\github\webSH\venv\Lib\site-packages\pydantic\main.py", line 250, in __init__
+    validated_self = self.__pydantic_validator__.validate_python(data, self_instance=self)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+pydantic_core._pydantic_core.ValidationError: 8 validation errors for PluginManifest
+ui.widgets.0.id
+  Field required [type=missing, input_value={'name': 'Clock', 'descri...size': {'w': 2, 'h': 2}}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.12/v/missing
+ui.widgets.0.size
+  Field required [type=missing, input_value={'name': 'Clock', 'descri...size': {'w': 2, 'h': 2}}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.12/v/missing
+ui.widgets.0.entry_point
+  Field required [type=missing, input_value={'name': 'Clock', 'descri...size': {'w': 2, 'h': 2}}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.12/v/missing
+ui.widgets.0.title
+  Field required [type=missing, input_value={'name': 'Clock', 'descri...size': {'w': 2, 'h': 2}}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.12/v/missing
+ui.widgets.0.name
+  Extra inputs are not permitted [type=extra_forbidden, input_value='Clock', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.12/v/extra_forbidden
+ui.widgets.0.description
+  Extra inputs are not permitted [type=extra_forbidden, input_value='Display current time', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.12/v/extra_forbidden
+ui.widgets.0.component
+  Extra inputs are not permitted [type=extra_forbidden, input_value='/plugins/clock/ui/index.html', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.12/v/extra_forbidden
+ui.widgets.0.default_size
+  Extra inputs are not permitted [type=extra_forbidden, input_value={'w': 2, 'h': 2}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.12/v/extra_forbidden
+┌─────────────────────────── Plugin Loading Error ────────────────────────────┐
+│ Failed to load plugin at plugins\clock                                      │
+│ Error: 8 validation errors for PluginManifest                               │
+│ ui.widgets.0.id                                                             │
+│   Field required                                                            │
+│     For further information visit                                           │
+│ https://errors.pydantic.dev/2.12/v/missing                                  │
+│ ui.widgets.0.size                                                           │
+│   Field required                                                            │
+│     For further information visit                                           │
+│ https://errors.pydantic.dev/2.12/v/missing                                  │
+│ ui.widgets.0.entry_point                                                    │
+│   Field required                                                            │
+│     For further information visit                                           │
+│ https://errors.pydantic.dev/2.12/v/missing                                  │
+│ ui.widgets.0.title                                                          │
+│   Field required                                                            │
+│     For further information visit                                           │
+│ https://errors.pydantic.dev/2.12/v/missing                                  │
+│ ui.widgets.0.name                                                           │
+│   Extra inputs are not permitted                                            │
+│     For further information visit                                           │
+│ https://errors.pydantic.dev/2.12/v/extra_forbidden                          │
+│ ui.widgets.0.description                                                    │
+│   Extra inputs are not permitted                                            │
+│     For further information visit                                           │
+│ https://errors.pydantic.dev/2.12/v/extra_forbidden                          │
+│ ui.widgets.0.component                                                      │
+│   Extra inputs are not permitted                                            │
+│     For further information visit                                           │
+│ https://errors.pydantic.dev/2.12/v/extra_forbidden                          │
+│ ui.widgets.0.default_size                                                   │
+│   Extra inputs are not permitted                                            │
+│     For further information visit                                           │
+│ https://errors.pydantic.dev/2.12/v/extra_forbidden                          │
+│ Plugin ID: clock                                                            │
+└─────────────────────────────────────────────────────────────────────────────┘
+[32m2026-02-12 04:46:27.688[0m | [31m[1mERROR   [0m | [36mcore.loader[0m:[36m_load_plugin[0m:[36m125[0m - [31m[1mFailed to load plugin at plugins\clock: 8 validation errors for PluginManifest
+ui.widgets.0.id
+  Field required [type=missing, input_value={'name': 'Clock', 'descri...size': {'w': 2, 'h': 2}}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.12/v/missing
+ui.widgets.0.size
+  Field required [type=missing, input_value={'name': 'Clock', 'descri...size': {'w': 2, 'h': 2}}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.12/v/missing
+ui.widgets.0.entry_point
+  Field required [type=missing, input_value={'name': 'Clock', 'descri...size': {'w': 2, 'h': 2}}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.12/v/missing
+ui.widgets.0.title
+  Field required [type=missing, input_value={'name': 'Clock', 'descri...size': {'w': 2, 'h': 2}}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.12/v/missing
+ui.widgets.0.name
+  Extra inputs are not permitted [type=extra_forbidden, input_value='Clock', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.12/v/extra_forbidden
+ui.widgets.0.description
+  Extra inputs are not permitted [type=extra_forbidden, input_value='Display current time', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.12/v/extra_forbidden
+ui.widgets.0.component
+  Extra inputs are not permitted [type=extra_forbidden, input_value='/plugins/clock/ui/index.html', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.12/v/extra_forbidden
+ui.widgets.0.default_size
+  Extra inputs are not permitted [type=extra_forbidden, input_value={'w': 2, 'h': 2}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.12/v/extra_forbidden[0m
+[32m2026-02-12 04:46:27.691[0m | [34m[1mDEBUG   [0m | [36mcore.registry[0m:[36mregister_plugin[0m:[36m64[0m - [34m[1mRegistered plugin metadata: hello_world[0m
+[32m2026-02-12 04:46:27.691[0m | [1mINFO    [0m | [36mcore.loader[0m:[36m_load_plugin[0m:[36m113[0m - [1mSuccessfully loaded plugin: hello_world (v1.0.0)[0m
+Traceback (most recent call last):
+  File "D:\github\webSH\core\loader.py", line 63, in _load_plugin
+    manifest = PluginManifest(**manifest_data)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\github\webSH\venv\Lib\site-packages\pydantic\main.py", line 250, in __init__
+    validated_self = self.__pydantic_validator__.validate_python(data, self_instance=self)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+pydantic_core._pydantic_core.ValidationError: 8 validation errors for PluginManifest
+ui.widgets.0.id
+  Field required [type=missing, input_value={'name': 'Shortcut', 'des...size': {'w': 1, 'h': 1}}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.12/v/missing
+ui.widgets.0.size
+  Field required [type=missing, input_value={'name': 'Shortcut', 'des...size': {'w': 1, 'h': 1}}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.12/v/missing
+ui.widgets.0.entry_point
+  Field required [type=missing, input_value={'name': 'Shortcut', 'des...size': {'w': 1, 'h': 1}}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.12/v/missing
+ui.widgets.0.title
+  Field required [type=missing, input_value={'name': 'Shortcut', 'des...size': {'w': 1, 'h': 1}}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.12/v/missing
+ui.widgets.0.name
+  Extra inputs are not permitted [type=extra_forbidden, input_value='Shortcut', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.12/v/extra_forbidden
+ui.widgets.0.description
+  Extra inputs are not permitted [type=extra_forbidden, input_value='Launch an action or app', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.12/v/extra_forbidden
+ui.widgets.0.component
+  Extra inputs are not permitted [type=extra_forbidden, input_value='/plugins/shortcut/ui/index.html', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.12/v/extra_forbidden
+ui.widgets.0.default_size
+  Extra inputs are not permitted [type=extra_forbidden, input_value={'w': 1, 'h': 1}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.12/v/extra_forbidden
+┌─────────────────────────── Plugin Loading Error ────────────────────────────┐
+│ Failed to load plugin at plugins\shortcut                                   │
+│ Error: 8 validation errors for PluginManifest                               │
+│ ui.widgets.0.id                                                             │
+│   Field required                                                            │
+│     For further information visit                                           │
+│ https://errors.pydantic.dev/2.12/v/missing                                  │
+│ ui.widgets.0.size                                                           │
+│   Field required                                                            │
+│     For further information visit                                           │
+│ https://errors.pydantic.dev/2.12/v/missing                                  │
+│ ui.widgets.0.entry_point                                                    │
+│   Field required                                                            │
+│     For further information visit                                           │
+│ https://errors.pydantic.dev/2.12/v/missing                                  │
+│ ui.widgets.0.title                                                          │
+│   Field required                                                            │
+│     For further information visit                                           │
+│ https://errors.pydantic.dev/2.12/v/missing                                  │
+│ ui.widgets.0.name                                                           │
+│   Extra inputs are not permitted                                            │
+│     For further information visit                                           │
+│ https://errors.pydantic.dev/2.12/v/extra_forbidden                          │
+│ ui.widgets.0.description                                                    │
+│   Extra inputs are not permitted                                            │
+│     For further information visit                                           │
+│ https://errors.pydantic.dev/2.12/v/extra_forbidden                          │
+│ ui.widgets.0.component                                                      │
+│   Extra inputs are not permitted                                            │
+│     For further information visit                                           │
+│ https://errors.pydantic.dev/2.12/v/extra_forbidden                          │
+│ ui.widgets.0.default_size                                                   │
+│   Extra inputs are not permitted                                            │
+│     For further information visit                                           │
+│ https://errors.pydantic.dev/2.12/v/extra_forbidden                          │
+│ Plugin ID: shortcut                                                         │
+└─────────────────────────────────────────────────────────────────────────────┘
+[32m2026-02-12 04:46:27.698[0m | [31m[1mERROR   [0m | [36mcore.loader[0m:[36m_load_plugin[0m:[36m125[0m - [31m[1mFailed to load plugin at plugins\shortcut: 8 validation errors for PluginManifest
+ui.widgets.0.id
+  Field required [type=missing, input_value={'name': 'Shortcut', 'des...size': {'w': 1, 'h': 1}}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.12/v/missing
+ui.widgets.0.size
+  Field required [type=missing, input_value={'name': 'Shortcut', 'des...size': {'w': 1, 'h': 1}}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.12/v/missing
+ui.widgets.0.entry_point
+  Field required [type=missing, input_value={'name': 'Shortcut', 'des...size': {'w': 1, 'h': 1}}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.12/v/missing
+ui.widgets.0.title
+  Field required [type=missing, input_value={'name': 'Shortcut', 'des...size': {'w': 1, 'h': 1}}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.12/v/missing
+ui.widgets.0.name
+  Extra inputs are not permitted [type=extra_forbidden, input_value='Shortcut', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.12/v/extra_forbidden
+ui.widgets.0.description
+  Extra inputs are not permitted [type=extra_forbidden, input_value='Launch an action or app', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.12/v/extra_forbidden
+ui.widgets.0.component
+  Extra inputs are not permitted [type=extra_forbidden, input_value='/plugins/shortcut/ui/index.html', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.12/v/extra_forbidden
+ui.widgets.0.default_size
+  Extra inputs are not permitted [type=extra_forbidden, input_value={'w': 1, 'h': 1}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.12/v/extra_forbidden[0m
+[32m2026-02-12 04:46:28.074[0m | [34m[1mDEBUG   [0m | [36mcore.registry[0m:[36mregister_plugin[0m:[36m64[0m - [34m[1mRegistered plugin metadata: system_executor[0m
+[32m2026-02-12 04:46:28.075[0m | [1mINFO    [0m | [36mcore.loader[0m:[36m_load_plugin[0m:[36m113[0m - [1mSuccessfully loaded plugin: system_executor (v1.0.0)[0m
+[32m2026-02-12 04:46:28.086[0m | [34m[1mDEBUG   [0m | [36mcore.registry[0m:[36mregister_plugin[0m:[36m64[0m - [34m[1mRegistered plugin metadata: system_fs[0m
+[32m2026-02-12 04:46:28.088[0m | [1mINFO    [0m | [36mcore.loader[0m:[36m_load_plugin[0m:[36m113[0m - [1mSuccessfully loaded plugin: system_fs (v1.0.0)[0m
+[32m2026-02-12 04:46:28.088[0m | [1mINFO    [0m | [36msystem_logger[0m:[36m__init__[0m:[36m34[0m - [1mSystem Logger initialized with OpenTelemetry bridge[0m
+[32m2026-02-12 04:46:28.088[0m | [34m[1mDEBUG   [0m | [36mcore.registry[0m:[36mregister_plugin[0m:[36m64[0m - [34m[1mRegistered plugin metadata: system_logger[0m
+[32m2026-02-12 04:46:28.088[0m | [1mINFO    [0m | [36mcore.loader[0m:[36m_load_plugin[0m:[36m113[0m - [1mSuccessfully loaded plugin: system_logger (v1.0.0)[0m
+[32m2026-02-12 04:46:28.094[0m | [1mINFO    [0m | [36msystem_storage[0m:[36m_init_db[0m:[36m42[0m - [1mLanceDB connected at data\system_storage.lancedb[0m
+[32m2026-02-12 04:46:28.094[0m | [34m[1mDEBUG   [0m | [36mcore.registry[0m:[36mregister_plugin[0m:[36m64[0m - [34m[1mRegistered plugin metadata: system_storage[0m
+[32m2026-02-12 04:46:28.094[0m | [1mINFO    [0m | [36mcore.loader[0m:[36m_load_plugin[0m:[36m113[0m - [1mSuccessfully loaded plugin: system_storage (v1.0.0)[0m
+[32m2026-02-12 04:46:28.098[0m | [34m[1mDEBUG   [0m | [36mcore.registry[0m:[36mregister_plugin[0m:[36m64[0m - [34m[1mRegistered plugin metadata: system_transport[0m
+[32m2026-02-12 04:46:28.098[0m | [1mINFO    [0m | [36mcore.loader[0m:[36m_load_plugin[0m:[36m113[0m - [1mSuccessfully loaded plugin: system_transport (v1.0.0)[0m
+[32m2026-02-12 04:46:28.100[0m | [34m[1mDEBUG   [0m | [36mcore.registry[0m:[36mregister_plugin[0m:[36m64[0m - [34m[1mRegistered plugin metadata: test_plugin[0m
+[32m2026-02-12 04:46:28.100[0m | [1mINFO    [0m | [36mcore.loader[0m:[36m_load_plugin[0m:[36m113[0m - [1mSuccessfully loaded plugin: test_plugin (v1.0.0)[0m
+[32m2026-02-12 04:46:28.100[0m | [1mINFO    [0m | [36mcore.registry[0m:[36mregister[0m:[36m28[0m - [1mRegistered capability: test.ping@1.0.0 (Schema: Yes)[0m
+[32m2026-02-12 04:46:28.101[0m | [1mINFO    [0m | [36mcore.registry[0m:[36mregister[0m:[36m28[0m - [1mRegistered capability: storage.batch_insert@1.0.0 (Schema: No)[0m
+[32m2026-02-12 04:46:28.101[0m | [1mINFO    [0m | [36mcore.registry[0m:[36mregister[0m:[36m28[0m - [1mRegistered capability: storage.get@1.0.0 (Schema: Yes)[0m
+[32m2026-02-12 04:46:28.101[0m | [1mINFO    [0m | [36mcore.registry[0m:[36mregister[0m:[36m28[0m - [1mRegistered capability: storage.search@1.0.0 (Schema: Yes)[0m
+[32m2026-02-12 04:46:28.101[0m | [1mINFO    [0m | [36mcore.registry[0m:[36mregister[0m:[36m28[0m - [1mRegistered capability: storage.set@1.0.0 (Schema: Yes)[0m
+[32m2026-02-12 04:46:28.101[0m | [1mINFO    [0m | [36mcore.registry[0m:[36mregister[0m:[36m28[0m - [1mRegistered capability: fs.hash@1.0.0 (Schema: Yes)[0m
+[32m2026-02-12 04:46:28.101[0m | [1mINFO    [0m | [36mcore.registry[0m:[36mregister[0m:[36m28[0m - [1mRegistered capability: fs.list@1.0.0 (Schema: Yes)[0m
+[32m2026-02-12 04:46:28.101[0m | [1mINFO    [0m | [36mcore.registry[0m:[36mregister[0m:[36m28[0m - [1mRegistered capability: fs.read@1.0.0 (Schema: Yes)[0m
+[32m2026-02-12 04:46:28.101[0m | [1mINFO    [0m | [36mcore.registry[0m:[36mregister[0m:[36m28[0m - [1mRegistered capability: fs.write@1.0.0 (Schema: Yes)[0m
+[32m2026-02-12 04:46:28.101[0m | [1mINFO    [0m | [36mcore.registry[0m:[36mregister[0m:[36m28[0m - [1mRegistered capability: core.execute@1.0.0 (Schema: Yes)[0m
+[32m2026-02-12 04:46:28.101[0m | [1mINFO    [0m | [36mcore.registry[0m:[36mregister[0m:[36m28[0m - [1mRegistered capability: hello.ping@1.0.0 (Schema: Yes)[0m
+[32m2026-02-12 04:46:28.101[0m | [1mINFO    [0m | [36mcore.loader[0m:[36mdiscover_and_load[0m:[36m52[0m - [1mPlugin initialization complete. Total: 7[0m
+[32m2026-02-12 04:46:28.102[0m | [1mINFO    [0m | [36mhello_world[0m:[36mon_activate[0m:[36m10[0m - [1mHelloWorld: Activated! Hello World initialized.[0m
+[32m2026-02-12 04:46:28.113[0m | [1mINFO    [0m | [36m__main__[0m:[36mcheck_infrastructure[0m:[36m36[0m - [1mSuccessfully connected to Redis[0m
+[32m2026-02-12 04:46:28.113[0m | [1mINFO    [0m | [36m__main__[0m:[36mcheck_infrastructure[0m:[36m44[0m - [1mTracing initialized[0m
+INFO:     Application startup complete.
+ERROR:    [Errno 10048] error while attempting to bind on address ('127.0.0.1', 8000): обычно разрешается только одно использование адреса сокета (протокол/сетевой адрес/порт)
+INFO:     Waiting for application shutdown.
+D:\github\webSH\main.py:99: DeprecationWarning: Call to deprecated close. (Use aclose() instead) -- Deprecated since version 5.0.1.
+  await redis_client.close()
+[32m2026-02-12 04:46:28.118[0m | [1mINFO    [0m | [36m__main__[0m:[36mlifespan[0m:[36m102[0m - [1mKernel shutdown complete[0m
+INFO:     Application shutdown complete.
