@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head><meta charset="UTF-8"><title>Шаг 9: Web Research [WEB]</title>
+<style>
+  body { background:#0d1117; color:#c9d1d9; font-family:system-ui,sans-serif; max-width:1000px; margin:auto; padding:2rem; }
+  h1 { background:linear-gradient(135deg,#00d4ff,#7c3aed); -webkit-background-clip:text; }
+  h2 { color:#58a6ff; border-bottom:1px solid #30363d; }
+  table { width:100%; border-collapse:collapse; margin:1rem 0; }
+  .badge { display:inline-block; padding:2px 8px; border-radius:4px; font-size:.8rem; background:#1f2937; color:#f0c674; }
+</style></head>
+<body>
+<span class="badge">Шаг 9/14</span>
+<h1>🌍 Web Research [WEB]</h1>
+
+<h2>Ключевые технологии</h2>
+<table>
+<tr><th>Технология</th><th>Назначение</th><th>Альтернативы</th></tr>
+<tr><td>FastAPI</td><td>Async REST + WebSocket</td><td>Flask, Django, Starlette</td></tr>
+<tr><td>Svelte 5</td><td>Frontend Shell</td><td>React, Vue, SolidJS</td></tr>
+<tr><td>Taskiq + Redis</td><td>Background tasks</td><td>Celery + RabbitMQ, Dramatiq, Huey</td></tr>
+<tr><td>LanceDB</td><td>Embedded vector DB</td><td>SQLite, DuckDB, Chroma, Weaviate</td></tr>
+<tr><td>OpenTelemetry</td><td>Distributed tracing</td><td>Sentry, Datadog, Zipkin</td></tr>
+<tr><td>Pluggy</td><td>Plugin system</td><td>setuptools entry_points, importlib, DIY</td></tr>
+<tr><td>Loguru</td><td>Logging</td><td>structlog, python-json-logger</td></tr>
+<tr><td>WhiteNoise</td><td>Static file serving</td><td>nginx, CDN, django-static</td></tr>
+<tr><td>imohash</td><td>Fast file hashing</td><td>hashlib, xxhash</td></tr>
+<tr><td>watchdog</td><td>File system monitoring</td><td>inotify, pyinotify, polling</td></tr>
+</table>
+
+<h2>🔄 Ключевые решения</h2>
+<ul>
+<li><strong>FastAPI vs Django:</strong> Выбран FastAPI за async, Pydantic integration, OpenAPI docs</li>
+<li><strong>Taskiq vs Celery:</strong> Taskiq легче, async-first, Redis native</li>
+<li><strong>LanceDB vs SQLite:</strong> LanceDB даёт vector search + columnar + embedded</li>
+<li><strong>Svelte vs React:</strong> Svelte 5 меньше boilerplate, реактивность из коробки</li>
+<li><strong>Pluggy vs entry_points:</strong> Pluggy даёт hook specs + runtime registration</li>
+</ul>
+<p><a href="index.html">← index.html</a></p>
+</body></html>

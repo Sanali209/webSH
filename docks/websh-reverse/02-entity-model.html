@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head><meta charset="UTF-8"><title>Шаг 2: Entity Model — PC Center v3.0</title>
+<style>
+  body { background:#0d1117; color:#c9d1d9; font-family:system-ui,sans-serif; max-width:1000px; margin:auto; padding:2rem; }
+  h1 { background:linear-gradient(135deg,#00d4ff,#7c3aed); -webkit-background-clip:text; }
+  h2 { color:#58a6ff; border-bottom:1px solid #30363d; }
+  table { width:100%; border-collapse:collapse; margin:1rem 0; }
+  th,td { padding:.5rem; text-align:left; border-bottom:1px solid #30363d; }
+  code { background:#1f2937; padding:2px 6px; border-radius:3px; }
+  .badge { display:inline-block; padding:2px 8px; border-radius:4px; font-size:.8rem; background:#1f2937; color:#f0c674; }
+</style></head>
+<body>
+<span class="badge">Шаг 2/14</span>
+<h1>📊 Entity Model — Pydantic Schemas</h1>
+
+<h2>📨 Messaging</h2>
+<table>
+<tr><th>Модель</th><th>Поля</th><th>Назначение</th></tr>
+<tr><td>Context</td><td>caller_id, token, parent_id, trace_stack, timestamp</td><td>Контекст вызова с trace stack для cycle detection</td></tr>
+<tr><td>CapabilityEnvelope</td><td>correlation_id (UUID), domain, params, context</td><td>Универсальный конверт для вызова capability</td></tr>
+</table>
+
+<h2>🖥️ Desktop / UI</h2>
+<table>
+<tr><th>Модель</th><th>Поля</th><th>Назначение</th></tr>
+<tr><td>PluginUI</td><td>widgets, views, shortcuts, top_bar</td><td>UI манифест плагина</td></tr>
+<tr><td>WidgetSchema</td><td>id, size (1x1/2x2/2x1/4x2), entry_point, title</td><td>Виджет для рабочего стола</td></tr>
+<tr><td>ViewSchema</td><td>id, title, entry_point</td><td>Полноэкранное приложение</td></tr>
+<tr><td>TopBarItemSchema</td><td>id, entry_point, component</td><td>Элемент верхней панели</td></tr>
+<tr><td>ShortcutSchema</td><td>icon, title, action</td><td>Ярлык на рабочем столе</td></tr>
+<tr><td>WidgetConfig</td><td>id, x, y, w, h, type, label, icon, component, props</td><td>Позиция виджета на десктопе</td></tr>
+<tr><td>DesktopConfig</td><td>id, widgets (list)</td><td>Состояние рабочего стола</td></tr>
+</table>
+
+<h2>🔌 Plugin</h2>
+<table>
+<tr><th>Модель</th><th>Поля</th><th>Назначение</th></tr>
+<tr><td>PluginManifest</td><td>id, version, compatibility_version, author, description, capabilities, ui</td><td>Манифест плагина с версионной совместимостью</td></tr>
+<tr><td>BaseSettings (SDK)</td><td>—</td><td>База для настроек плагина</td></tr>
+</table>
+
+<h2>🧩 Domain Schemas (Plugin-specific)</h2>
+<table>
+<tr><th>Плагин</th><th>Схемы</th></tr>
+<tr><td>system_executor</td><td>ExecuteParams (func_name + params + priority)</td></tr>
+<tr><td>system_fs</td><td>PathParams, WriteParams (path, content, encoding), ListParams (path, recursive)</td></tr>
+<tr><td>system_storage</td><td>SetParams (table, data), GetParams (table, filter, limit), SearchParams (table, vector, limit)</td></tr>
+<tr><td>system_transport</td><td>AllocParams (size), FreeParams (name)</td></tr>
+<tr><td>hello_world</td><td>PingParams (name)</td></tr>
+</table>
+
+<h2>📐 Связи</h2>
+<ul>
+<li>PluginManifest → PluginUI (через ui поле)</li>
+<li>PluginUI → [WidgetSchema, ViewSchema, ShortcutSchema, TopBarItemSchema]</li>
+<li>CapabilityEnvelope → Context (через context поле)</li>
+<li>DesktopConfig → [WidgetConfig] (через widgets поле)</li>
+</ul>
+<p><a href="index.html">← index.html</a></p>
+</body></html>

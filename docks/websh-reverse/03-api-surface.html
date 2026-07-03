@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head><meta charset="UTF-8"><title>Шаг 3: API Surface — PC Center v3.0</title>
+<style>
+  body { background:#0d1117; color:#c9d1d9; font-family:system-ui,sans-serif; max-width:1000px; margin:auto; padding:2rem; }
+  h1 { background:linear-gradient(135deg,#00d4ff,#7c3aed); -webkit-background-clip:text; }
+  h2 { color:#58a6ff; border-bottom:1px solid #30363d; }
+  table { width:100%; border-collapse:collapse; margin:1rem 0; }
+  th,td { padding:.5rem; text-align:left; border-bottom:1px solid #30363d; }
+  code { background:#1f2937; padding:2px 6px; border-radius:3px; }
+  .badge { display:inline-block; padding:2px 8px; border-radius:4px; font-size:.8rem; background:#1f2937; color:#f0c674; }
+</style></head>
+<body>
+<span class="badge">Шаг 3/14</span>
+<h1>🌐 API Surface — FastAPI Endpoints</h1>
+
+<h2>📡 REST Endpoints</h2>
+<table>
+<tr><th>Метод</th><th>Path</th><th>Описание</th></tr>
+<tr><td>POST</td><td><code>/api/v1/call</code></td><td>Главный entry point — dispatch capability via Switchboard</td></tr>
+<tr><td>GET</td><td><code>/api/v1/plugins</code></td><td>Список всех плагинов с metadata</td></tr>
+<tr><td>GET</td><td><code>/api/v1/registry/ui-extensions</code></td><td>UI extensions grouped (widgets/apps/shortcuts/top_bar)</td></tr>
+<tr><td>GET</td><td><code>/health</code></td><td>Health check (Redis + Tracing)</td></tr>
+<tr><td>GET</td><td><code>/health/ui/{plugin_id}</code></td><td>Проверка UI ассетов плагина</td></tr>
+<tr><td>POST</td><td><code>/api/v1/desktop/sync</code></td><td>Синхронизация состояния десктопа (LanceDB)</td></tr>
+<tr><td>GET</td><td><code>/api/v1/desktop/sync</code></td><td>Получение состояния десктопа</td></tr>
+</table>
+
+<h2>🔌 WebSocket Endpoints</h2>
+<table>
+<tr><th>Path</th><th>Описание</th></tr>
+<tr><td><code>/ws</code></td><td>Generic WebSocket (echo mode)</td></tr>
+<tr><td><code>/api/v1/debug/stream</code></td><td>Real-time OpenTelemetry trace stream</td></tr>
+</table>
+
+<h2>🛡️ Middleware</h2>
+<ul>
+<li><strong>CORS:</strong> allow_origins=["*"] (dev mode)</li>
+<li><strong>CSP:</strong> Content-Security-Policy, script_src включает cdn.jsdelivr</li>
+<li><strong>Secure Headers:</strong> PermissionsPolicy, HSTS, XContentTypeOptions, ReferrerPolicy, XFrameOptions</li>
+<li><strong>WhiteNoise:</strong> serves frontend from /desktop</li>
+<li><strong>ORJSONResponse:</strong> быстрые JSON ответы</li>
+</ul>
+
+<h2>📦 Static Mounts</h2>
+<ul>
+<li><code>/plugins/{id}/ui</code> — UI assets каждого плагина</li>
+<li><code>/desktop</code> — Svelte 5 build (dist/)</li>
+</ul>
+<p><a href="index.html">← index.html</a></p>
+</body></html>

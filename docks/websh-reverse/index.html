@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head><meta charset="UTF-8"><title>PC Center v3.0 (webSH) — Reverse Engineering Map (Pass 2 Complete)</title>
+<style>
+  body { background:#0d1117; color:#c9d1d9; font-family:system-ui,sans-serif; max-width:900px; margin:auto; padding:2rem; }
+  h1 { background:linear-gradient(135deg,#00d4ff,#7c3aed); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+  h2 { color:#58a6ff; border-bottom:1px solid #30363d; }
+  a { color:#58a6ff; }
+  table { width:100%; border-collapse:collapse; margin:1rem 0; }
+  th,td { padding:.5rem; text-align:left; border-bottom:1px solid #30363d; }
+  .meta { color:#8b949e; font-size:.9rem; }
+  .completed { background:#064e3b; color:#6ee7b7; display:inline-block; padding:2px 8px; border-radius:4px; font-size:.8rem; }
+  .summary { background:#0d2818; border:1px solid #3fb950; border-radius:6px; padding:1rem; margin:1rem 0; }
+  .new { background:#0d2818; color:#7ee787; display:inline-block; padding:0 6px; border-radius:3px; font-size:.8rem; }
+</style></head>
+<body>
+<h1>🖥️ PC Center v3.0 (webSH) — Reverse Engineering Map</h1>
+<p class="meta">Project: webSH | Completed: 2026-05-26 | Pass 1 + 2 Complete</p>
+
+<div class="summary">
+<h3>📊 Итоговый Summary</h3>
+<table>
+<tr><td>Python файлов</td><td>42</td></tr>
+<tr><td>Строк кода (Python)</td><td>~3 013 + ~700 тестов</td></tr>
+<tr><td>Тестов</td><td>12+ файлов (switchboard, loader, fs, mmap, storage, registry, ui)</td></tr>
+<tr><td>Frontend</td><td>Svelte 5 + Vite + Playwright e2e + SlotRegistry</td></tr>
+<tr><td>Плагинов</td><td>10</td></tr>
+<tr><td>Документация</td><td>~50+ файлов (Diátaxis + Iteration Plans + Phase Reports)</td></tr>
+</table>
+
+<h3>🏆 Главные находки (Pass 2 обновление)</h3>
+<ol>
+<li><span class="new">NEW</span> <strong>12+ тестов:</strong> Switchboard (routing/validation/circular), Loader (discovery/manifest/errors), FS Provider (list/read/write/sandbox/hash/monitor), MMAP Transport (alloc/free/Arrow zero-copy/100MB perf <0.5s), Storage, Registry, UI</li>
+<li><span class="new">NEW</span> <strong>Svelte 5 SlotRegistry:</strong> Клиентский registry.svelte.js с $state реактивностью — динамическая регистрация/сортировка UI-компонентов</li>
+<li><span class="new">NEW</span> <strong>gridManager.ts:</strong> Collision detection + auto-positioning для виджетов на десктопе</li>
+<li><span class="new">NEW</span> <strong>Multi-desktop:</strong> appState.desktopWidgets[1-5] — 5 рабочих столов с переключением</li>
+<li><span class="new">NEW</span> <strong>Playwright e2e:</strong> playwright.config.ts + report в shell/</li>
+<li><span class="new">NEW</span> <strong>Arrow Zero-Copy IPC:</strong> Shared memory transport с Arrow-таблицами. 100MB аллокация <0.5s</li>
+<li><span class="new">NEW</span> <strong>test_plugin:</strong> test.ping capability для интеграционного тестирования</li>
+</ol>
+</div>
+
+<h2>Артефакты — Pass 1 + 2 Complete</h2>
+<table>
+<tr><th>#</th><th>Артефакт</th><th>Статус</th><th>Pass 2 изменения</th></tr>
+<tr><td>0</td><td><a href="index.html">index.html</a></td><td class="completed">✅ Final</td><td>Обновлённый summary</td></tr>
+<tr><td>1</td><td><a href="01-surface-scan.html">01-surface-scan.html</a></td><td class="completed">✅</td><td>—</td></tr>
+<tr><td>2</td><td><a href="02-entity-model.html">02-entity-model.html</a></td><td class="completed">✅</td><td>—</td></tr>
+<tr><td>3</td><td><a href="03-api-surface.html">03-api-surface.html</a></td><td class="completed">✅</td><td>—</td></tr>
+<tr><td>4</td><td><a href="04-frontend-flow.html">04-frontend-flow.html</a></td><td class="completed">✅</td><td>SlotRegistry, gridManager, Playwright</td></tr>
+<tr><td>5</td><td><a href="05-uiux-desktop-gui.html">05-uiux-desktop-gui.html</a></td><td class="completed">✅</td><td>Multi-desktop, ErrorBoundary, WidgetSkeleton</td></tr>
+<tr><td>6</td><td><a href="06-data-pipeline.html">06-data-pipeline.html</a></td><td class="completed">✅</td><td>Arrow zero-copy IPC pipeline</td></tr>
+<tr><td>7</td><td><a href="07-feature-analysis.html">07-feature-analysis.html</a></td><td class="completed">✅</td><td>test_plugin, Playwright, Arrow IPC</td></tr>
+<tr><td>8</td><td><a href="08-documentation-audit.html">08-documentation-audit.html</a></td><td class="completed">✅</td><td>50+ doc files, phase reports</td></tr>
+<tr><td>9</td><td><a href="09-web-research.html">09-web-research.html</a></td><td class="completed">✅</td><td>—</td></tr>
+<tr><td>10</td><td><a href="10-architecture.html">10-architecture.html</a></td><td class="completed">✅</td><td>Test Layer, SlotRegistry pattern</td></tr>
+<tr><td>11</td><td><a href="11-project-critique.html">11-project-critique.html</a></td><td class="completed">✅</td><td>Исправлено: тесты ЕСТЬ</td></tr>
+<tr><td>12</td><td><a href="12-knowledge-gained.html">12-knowledge-gained.html</a></td><td class="completed">✅</td><td>SlotRegistry, Arrow IPC</td></tr>
+<tr><td>13</td><td><a href="13-swot-debt-roadmap.html">13-swot-debt-roadmap.html</a></td><td class="completed">✅</td><td>Strengths обновлены</td></tr>
+</table>
+<p class="meta">Two-Pass Complete | 50+ файлов прочитано | 13 HTML артефактов</p>
+</body></html>

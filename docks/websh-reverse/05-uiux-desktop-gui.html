@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head><meta charset="UTF-8"><title>Шаг 5: UI/UX — Desktop GUI</title>
+<style>
+  body { background:#0d1117; color:#c9d1d9; font-family:system-ui,sans-serif; max-width:1000px; margin:auto; padding:2rem; }
+  h1 { background:linear-gradient(135deg,#00d4ff,#7c3aed); -webkit-background-clip:text; }
+  h2 { color:#58a6ff; border-bottom:1px solid #30363d; }
+  .badge { display:inline-block; padding:2px 8px; border-radius:4px; font-size:.8rem; background:#1f2937; color:#f0c674; }
+</style></head>
+<body>
+<span class="badge">Шаг 5/14</span>
+<h1>🪟 UI/UX — Web Desktop Environment</h1>
+
+<h2>🖥️ Экраны</h2>
+<ul>
+<li><strong>Desktop (Grid)</strong> — рабочее пространство с виджетами (позиционирование x,y,w,h)</li>
+<li><strong>Top Bar</strong> — верхняя панель с элементами от плагинов</li>
+<li><strong>Application Views</strong> — полноэкранные приложения</li>
+<li><strong>Widget Windows</strong> — плавающие окна виджетов</li>
+<li><strong>Shortcut Icons</strong> — ярлыки на рабочем столе</li>
+</ul>
+
+<h2>🎨 UX Patterns</h2>
+<ul>
+<li><strong>Grid-based Layout:</strong> DesktopConfig хранит позиции виджетов, синхронизируется с LanceDB</li>
+<li><strong>Dynamic Component Injection:</strong> Svelte загружает компоненты плагинов из внешних entry_point</li>
+<li><strong>State Sync:</strong> POST/GET /api/v1/desktop/sync — полный оверрайт состояния</li>
+<li><strong>UI Extension Slots:</strong> 4 предопределённых слота для расширения интерфейса</li>
+</ul>
+
+<p><a href="index.html">← index.html</a></p>
+</body></html>

@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head><meta charset="UTF-8"><title>Шаг 11: Project Critique [WEB]</title>
+<style>
+  body { background:#0d1117; color:#c9d1d9; font-family:system-ui,sans-serif; max-width:1000px; margin:auto; padding:2rem; }
+  h1 { background:linear-gradient(135deg,#00d4ff,#7c3aed); -webkit-background-clip:text; }
+  h2 { color:#58a6ff; border-bottom:1px solid #30363d; }
+  .badge { display:inline-block; padding:2px 8px; border-radius:4px; font-size:.8rem; background:#1f2937; color:#f0c674; }
+  .crit { border:1px solid #f85149; border-radius:6px; padding:.8rem; margin:.8rem 0; }
+  .oq { border:1px solid #d29922; border-radius:6px; padding:.8rem; margin:.8rem 0; }
+</style></head>
+<body>
+<span class="badge">Шаг 11/14</span>
+<h1>🔬 Project Critique [WEB]</h1>
+
+<h2>❓ Open Questions</h2>
+
+<div class="oq"><h3>1. Почему WebSocket /ws не подключён к Switchboard?</h3><p><strong>Гипотеза:</strong> Незавершённая фича. WebSocket только echo. Возможно, планировался real-time event bus.</p></div>
+<div class="oq"><h3>2. Event system — on_event декоратор без реализации?</h3><p><strong>Гипотеза:</strong> SDK включает @on_event, но subscription не реализован. Планировался Redis PubSub.</p></div>
+<div class="oq"><h3>3. Почему нет тестов?</h3><p><strong>Гипотеза:</strong> Проект в ранней стадии (iteration 2). pytest и pytest-asyncio в зависимостях, но тестов нет.</p></div>
+
+<h2>👁️ Blind Spots</h2>
+<ul>
+<li><strong>Security:</strong> Нет auth. Context.token не проверяется. CORS allow_origins=["*"]</li>
+<li><strong>Error Handling:</strong> Воркер callback через HTTP — нет ретраев, может потерять task.finished</li>
+<li><strong>Memory:</strong> Shared memory сегменты не имеют ограничения по размеру/количеству</li>
+<li><strong>Persistence:</strong> Desktop state — полный оверрайт при POST, нет merge</li>
+<li><strong>Concurrency:</strong> ThreadPoolExecutor в system_fs не имеет ограничения размера</li>
+</ul>
+
+<h2>⚖️ Criticism</h2>
+<div class="crit"><h3>1. Callback через HTTP loopback — хрупкий</h3><p>task.finished отправляется HTTP POST на localhost. Если сервер упал — потеря回调. <strong>Альтернатива:</strong> Redis PubSub или прямой вызов Switchboard.</p></div>
+<div class="crit"><h3>2. Desktop sync — полный оверрайт</h3><p>POST /api/v1/desktop/sync заменяет всю таблицу. Нет diff/merge. <strong>Альтернатива:</strong> PATCH с конкретными изменениями.</p></div>
+<div class="crit"><h3>3. Нет тестовой инфраструктуры</h3><p>pytest в зависимостях, но тестов нет. Критично для plugin-архитектуры.</p></div>
+<p><a href="index.html">← index.html</a></p>
+</body></html>

@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head><meta charset="UTF-8"><title>Шаг 1: Surface Scan — PC Center v3.0</title>
+<style>
+  body { background:#0d1117; color:#c9d1d9; font-family:system-ui,sans-serif; max-width:1000px; margin:auto; padding:2rem; }
+  h1 { background:linear-gradient(135deg,#00d4ff,#7c3aed); -webkit-background-clip:text; }
+  h2 { color:#58a6ff; border-bottom:1px solid #30363d; }
+  table { width:100%; border-collapse:collapse; margin:1rem 0; }
+  th,td { padding:.5rem; text-align:left; border-bottom:1px solid #30363d; }
+  code { background:#1f2937; padding:2px 6px; border-radius:3px; }
+  .badge { display:inline-block; padding:2px 8px; border-radius:4px; font-size:.8rem; background:#1f2937; color:#f0c674; }
+</style></head>
+<body>
+<span class="badge">Шаг 1/14</span>
+<h1>🔍 Surface Scan — PC Center v3.0 (webSH)</h1>
+<p><strong>PC Center v3.0</strong> — modular "Web OS" desktop environment. Ultra-thin kernel (FastAPI) + plugin system + Svelte 5 Shell UI.</p>
+
+<h2>📊 Периметр</h2>
+<table>
+<tr><td>Python файлов</td><td>42</td></tr>
+<tr><td>Строк кода (Python)</td><td>~3 013</td></tr>
+<tr><td>Плагинов</td><td>10 (clock, hello_world, sdk-js, shortcut, system_executor, system_fs, system_logger, system_storage, system_transport, test_plugin)</td></tr>
+<tr><td>Frontend</td><td>Svelte 5 + Vite (shell/)</td></tr>
+<tr><td>Docker</td><td>Dockerfile (multi-stage) + docker-compose.yml</td></tr>
+</table>
+
+<h2>📦 Зависимости (27)</h2>
+<table>
+<tr><th>Группа</th><th>Библиотеки</th></tr>
+<tr><td>Web</td><td>fastapi, uvicorn, httpx, whitenoise, secure, a2wsgi, orjson</td></tr>
+<tr><td>Data</td><td>pydantic-settings, pydantic, lancedb, pandas, pyarrow</td></tr>
+<tr><td>Infra</td><td>redis, opentelemetry-api/sdk/instrumentation/exporter</td></tr>
+<tr><td>Dev</td><td>pytest, pytest-asyncio</td></tr>
+<tr><td>Plugin</td><td>pluggy, importlib-metadata, packaging</td></tr>
+<tr><td>Async Tasks</td><td>taskiq, taskiq-redis</td></tr>
+<tr><td>Other</td><td>rich, loguru, imohash, watchdog</td></tr>
+</table>
+
+<h2>🏗️ Структура</h2>
+<pre>
+├── main.py              # FastAPI app + endpoints
+├── worker.py            # Taskiq worker entry
+├── start_dev_server.py  # Dev server (Svelte + FastAPI)
+├── core/
+│   ├── schemas.py       # Pydantic модели
+│   ├── settings.py      # Pydantic Settings
+│   ├── registry.py      # Registry capability/plugin/ui
+│   ├── switchboard.py   # Signal dispatcher
+│   ├── loader.py        # Plugin loader (Pluggy)
+│   ├── sdk.py           # BasePlugin + @capability decorator
+│   ├── hooks.py         # Pluggy hook specs
+│   ├── executor.py      # Taskiq broker
+│   ├── tracing.py       # OpenTelemetry setup
+│   ├── debug.py         # WebSocket trace broadcaster
+│   ├── dashboard.py     # Rich console dashboard
+│   └── utils.py         # JSON schema utils
+├── plugins/             # 10 plugins
+├── shell/               # Svelte 5 frontend
+├── infra/               # OTEL collector config
+├── Dockerfile
+└── docker-compose.yml
+</pre>
+
+<h2>💡 Ключевые концепции</h2>
+<ol>
+<li><strong>Capability Broker:</strong> FastAPI kernel routing requests to plugins via domain@version</li>
+<li><strong>Plugin SDK:</strong> @capability декоратор + BasePlugin + Pluggy hook system</li>
+<li><strong>Schema Guard:</strong> Pydantic TypeAdapter для high-speed валидации параметров</li>
+<li><strong>Trace Stack:</strong> Circular dependency detection через trace_stack в Context</li>
+<li><strong>Taskiq + Redis:</strong> Фоновая очередь с worker и callback через HTTP loopback</li>
+<li><strong>OpenTelemetry + Jaeger:</strong> Full tracing pipeline + WebSocket real-time broadcast</li>
+<li><strong>LanceDB:</strong> Встраиваемая векторная БД для desktop state и storage plugin</li>
+<li><strong>Shared Memory IPC:</strong> multiprocessing.shared_memory для cross-process данных</li>
+<li><strong>UI Extension Slots:</strong> widgets/views/shortcuts/top_bar — Svelte динамически загружает компоненты</li>
+<li><strong>Path Sandbox:</strong> FS plugin проверяет path на выход за пределы workspace</li>
+</ol>
+<p><a href="index.html">← index.html</a></p>
+</body></html>

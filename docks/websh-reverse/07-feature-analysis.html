@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head><meta charset="UTF-8"><title>Шаг 7: Feature Analysis [WEB]</title>
+<style>
+  body { background:#0d1117; color:#c9d1d9; font-family:system-ui,sans-serif; max-width:1000px; margin:auto; padding:2rem; }
+  h1 { background:linear-gradient(135deg,#00d4ff,#7c3aed); -webkit-background-clip:text; }
+  h2 { color:#58a6ff; border-bottom:1px solid #30363d; }
+  table { width:100%; border-collapse:collapse; margin:1rem 0; }
+  th,td { padding:.5rem; text-align:left; border-bottom:1px solid #30363d; }
+  .badge { display:inline-block; padding:2px 8px; border-radius:4px; font-size:.8rem; background:#1f2937; color:#f0c674; }
+  .ok { color:#3fb950; } .warn { color:#d29922; } .no { color:#f85149; }
+</style></head>
+<body>
+<span class="badge">Шаг 7/14</span>
+<h1>⭐ Feature Analysis [WEB]</h1>
+
+<h2>✅ Feature Status Matrix</h2>
+<table>
+<tr><th>Фича</th><th>Статус</th><th>Где</th></tr>
+<tr><td>Capability Broker</td><td class="ok">✅</td><td>core/switchboard.py</td></tr>
+<tr><td>Plugin System (Pluggy)</td><td class="ok">✅</td><td>core/loader.py + core/hooks.py</td></tr>
+<tr><td>SDK с @capability decorator</td><td class="ok">✅</td><td>core/sdk.py</td></tr>
+<tr><td>Schema Validation (Pydantic)</td><td class="ok">✅</td><td>TypeAdapter в switchboard, per-plugin schemas</td></tr>
+<tr><td>Version Compatibility Check</td><td class="ok">✅</td><td>loader.py (SpecifierSet)</td></tr>
+<tr><td>UI Extensions (4 slots)</td><td class="ok">✅</td><td>registry.list_extensions()</td></tr>
+<tr><td>Svelte 5 Frontend</td><td class="ok">✅</td><td>shell/</td></tr>
+<tr><td>OpenTelemetry Tracing</td><td class="ok">✅</td><td>core/tracing.py + Jaeger + WebSocket</td></tr>
+<tr><td>Redis Integration</td><td class="ok">✅</td><td>redis.asyncio, health check</td></tr>
+<tr><td>Taskiq Background Tasks</td><td class="ok">✅</td><td>system_executor + worker.py</td></tr>
+<tr><td>File System Provider</td><td class="ok">✅</td><td>system_fs (sandbox + watchdog)</td></tr>
+<tr><td>Vector DB Storage</td><td class="ok">✅</td><td>system_storage (LanceDB)</td></tr>
+<tr><td>Shared Memory IPC</td><td class="ok">✅</td><td>system_transport</td></tr>
+<tr><td>Loguru ↔ OTEL bridge</td><td class="ok">✅</td><td>system_logger</td></tr>
+<tr><td>Desktop State Persistence</td><td class="ok">✅</td><td>LanceDB desktop_state table</td></tr>
+<tr><td>Health Checks</td><td class="ok">✅</td><td>/health, /health/ui/{id}</td></tr>
+<tr><td>Console Dashboard (Rich)</td><td class="ok">✅</td><td>core/dashboard.py</td></tr>
+<tr><td>Docker + Docker Compose</td><td class="ok">✅</td><td>Dockerfile, docker-compose.yml</td></tr>
+<tr><td>Security Headers (CSP, CORS)</td><td class="ok">✅</td><td>main.py middleware</td></tr>
+<tr><td>WSGI/ASGI Bridge</td><td class="ok">✅</td><td>a2wsgi + WhiteNoise</td></tr>
+<tr><td>Event System</td><td class="warn">⚠️</td><td>on_event decorator exists, subscription not implemented</td></tr>
+<tr><td>Plugin Settings UI</td><td class="warn">⚠️</td><td>get_settings_schema() → JSON schema, но нет frontend</td></tr>
+<tr><td>Multi-Desktop Support</td><td class="warn">⚠️</td><td>DesktopConfig.id существует, одна конфигурация</td></tr>
+<tr><td>Authentication / Auth</td><td class="no">❌</td><td>Context.token существует, но не проверяется</td></tr>
+</table>
+
+<h2>🔮 Gap Analysis</h2>
+<ul>
+<li>❌ No auth — Context.token не валидируется</li>
+<li>❌ Event system — on_event декоратор есть, subscribe не реализован</li>
+<li>❌ Plugin settings — JSON schema генерируется, UI не рендерит</li>
+<li>⚠️ WebSocket /ws — только echo, не подключён к Switchboard</li>
+<li>⚠️ Scene/Workspace — нет полноценного управления рабочими пространствами</li>
+<li>⚠️ Нет тестов (нет папки tests с тестами)</li>
+</ul>
+<p><a href="index.html">← index.html</a></p>
+</body></html>

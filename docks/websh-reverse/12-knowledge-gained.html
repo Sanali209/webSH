@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head><meta charset="UTF-8"><title>Шаг 12: Knowledge Gained</title>
+<style>
+  body { background:#0d1117; color:#c9d1d9; font-family:system-ui,sans-serif; max-width:1000px; margin:auto; padding:2rem; }
+  h1 { background:linear-gradient(135deg,#00d4ff,#7c3aed); -webkit-background-clip:text; }
+  h2 { color:#58a6ff; border-bottom:1px solid #30363d; }
+  .badge { display:inline-block; padding:2px 8px; border-radius:4px; font-size:.8rem; background:#1f2937; color:#f0c674; }
+  .kitem { border:1px solid #30363d; border-radius:6px; padding:.8rem; margin:.8rem 0; }
+  .kitem h4 { color:#7ee787; }
+</style></head>
+<body>
+<span class="badge">Шаг 12/14</span>
+<h1>🧠 Knowledge Gained</h1>
+
+<div class="kitem"><h4>📐 Capability Broker на FastAPI</h4><p><strong>Pattern:</strong> Единый POST /api/v1/call маршрутизирует все вызовы. Switchboard + Registry = lightweight message broker.</p><p><strong>Применимость:</strong> Plugin-based systems, микросервисы, Web OS.</p></div>
+<div class="kitem"><h4>🔄 TypeAdapter для Schema Guard</h4><p><strong>Lesson:</strong> Вместо Pydantic model validation (медленно), кэшированный TypeAdapter с validate_python().</p><p><strong>Применимость:</strong> Высоконагруженные API с runtime-валидацией.</p></div>
+<div class="kitem"><h4>🔌 Pluggy + @capability decorator</h4><p><strong>Pattern:</strong> Pluggy hook specs для plugin lifecycle + @capability декоратор для авто-регистрации. BasePlugin.sh_plugin_init сканирует методы.</p><p><strong>Применимость:</strong> Любая plugin-архитектура на Python.</p></div>
+<div class="kitem"><h4>🌊 OTEL + WebSocket real-time traces</h4><p><strong>Pattern:</strong> Custom SpanProcessor → broadcaster.broadcast() → WebSocket clients. Live debugging без Jaeger UI.</p><p><strong>Применимость:</strong> DevOps дашборды, live debugging tools.</p></div>
+<div class="kitem"><h4>⚠️ HTTP loopback для task callback — anti-pattern</h4><p><strong>Anti-pattern:</strong> Worker HTTP POST на localhost для результата. Хрупко, нет ретраев, SPOF.</p><p><strong>Альтернатива:</strong> Redis PubSub, Switchboard через import.</p></div>
+<div class="kitem"><h4>🔒 Path Sandbox в системе файлов</h4><p><strong>Pattern:</strong> os.path.abspath + startswith(root_dir) для предотвращения directory traversal.</p><p><strong>Применимость:</strong> Любая файловая система с мульти-арендой.</p></div>
+<div class="kitem"><h4>📦 Multi-stage Docker + Svelte + FastAPI</h4><p><strong>Tool:</strong> Stage 1: Node build Svelte → dist. Stage 2: Python runtime + dist. Единый образ.</p></div>
+<p><a href="index.html">← index.html</a></p>
+</body></html>

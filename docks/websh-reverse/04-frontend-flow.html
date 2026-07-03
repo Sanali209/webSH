@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head><meta charset="UTF-8"><title>Шаг 4: Frontend — Svelte 5 Shell (Pass 2)</title>
+<style>
+  body { background:#0d1117; color:#c9d1d9; font-family:system-ui,sans-serif; max-width:1000px; margin:auto; padding:2rem; }
+  h1 { background:linear-gradient(135deg,#00d4ff,#7c3aed); -webkit-background-clip:text; }
+  h2 { color:#58a6ff; border-bottom:1px solid #30363d; }
+  table { width:100%; border-collapse:collapse; margin:1rem 0; }
+  th,td { padding:.5rem; text-align:left; border-bottom:1px solid #30363d; }
+  .badge { display:inline-block; padding:2px 8px; border-radius:4px; font-size:.8rem; background:#1f2937; color:#f0c674; }
+  .new { background:#0d2818; color:#7ee787; display:inline-block; padding:0 6px; border-radius:3px; font-size:.8rem; }
+</style></head>
+<body>
+<span class="badge">Шаг 4/14 — Pass 2</span>
+<h1>🎨 Frontend Flow — Svelte 5 Shell</h1>
+
+<h2>🏗️ Компонентная структура (Pass 2)</h2>
+<pre>
+src/
+├── App.svelte                  ← Root: Sidebar + TopBar + DesktopGrid + ModalContainer
+├── app.css                     ← Тёмная тема (slate-900)
+├── components/
+│   ├── layout/
+│   │   ├── Sidebar.svelte
+│   │   └── TopBar.svelte
+│   ├── DesktopGrid.svelte
+│   ├── GridItem.svelte
+│   ├── WidgetHost.svelte       ← Хост для внешних виджетов
+│   ├── desktop/
+│   │   ├── Grid.svelte
+│   │   └── WidgetLoader.svelte ← Загрузчик виджетов
+│   ├── system/
+│   │   ├── ModalContainer.svelte
+│   │   ├── SettingsModal.svelte
+│   │   └── Slot.svelte
+│   └── AddWidgetDialog.svelte
+└── lib/
+    ├── store.svelte.js         ← <span class="new">NEW</span> Reactive state (5 desktops, plugins, WebSocket)
+    ├── registry.svelte.js      ← <span class="new">NEW</span> SlotRegistry с $state
+    ├── Counter.svelte
+    ├── components/
+    │   ├── ErrorBoundary.svelte
+    │   └── WidgetSkeleton.svelte
+    ├── modal.svelte.js
+    └── services/
+        ├── extensionLoader.ts  ← Загрузка UI-расширений
+        ├── gridManager.ts      ← <span class="new">NEW</span> Collision detection + auto-position
+        ├── uiManager.ts
+        ├── widgetBridge.ts     ← <span class="new">NEW</span> Bridge для внешних виджетов
+        └── stores/
+            └── ui.svelte.ts    ← Типизированный UI store
+</pre>
+
+<h2><span class="new">NEW</span> SlotRegistry (registry.svelte.js)</h2>
+<p>Клиентский реестр с $state реактивностью. Поддерживает register/unregister/getItems. Автоматическая сортировка по priority.</p>
+
+<h2><span class="new">NEW</span> Multi-Desktop</h2>
+<p>5 рабочих столов (desktopWidgets[1-5]). Переключение через uiState.activeDesktop. Персистентность через LanceDB.</p>
+
+<h2><span class="new">NEW</span> WebSocket Client</h2>
+<p>store.svelte.js подключается к /ws. Auto-reconnect с 5s таймаутом. Получает события от брокера.</p>
+
+<h2><span class="new">NEW</span> Playwright E2E</h2>
+<p>shell/playwright.config.ts + report.md — e2e тестирование Shell.</p>
+
+<p><a href="index.html">← index.html</a></p>
+</body></html>

@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head><meta charset="UTF-8"><title>Шаг 10: Architecture (Pass 2 Update)</title>
+<style>
+  body { background:#0d1117; color:#c9d1d9; font-family:system-ui,sans-serif; max-width:1000px; margin:auto; padding:2rem; }
+  h1 { background:linear-gradient(135deg,#00d4ff,#7c3aed); -webkit-background-clip:text; }
+  h2 { color:#58a6ff; border-bottom:1px solid #30363d; }
+  .badge { display:inline-block; padding:2px 8px; border-radius:4px; font-size:.8rem; background:#1f2937; color:#f0c674; }
+  .pat { border:1px solid #30363d; border-radius:6px; padding:.8rem; margin:.8rem 0; }
+  .new { background:#0d2818; color:#7ee787; display:inline-block; padding:0 6px; border-radius:3px; font-size:.8rem; }
+</style></head>
+<body>
+<span class="badge">Шаг 10/14 — Pass 2</span>
+<h1>🏛️ Architecture (Pass 2 Update)</h1>
+
+<h2>📐 Layer Diagram (updated)</h2>
+<pre>
+┌─────────────────────────────────────────────────┐
+│              Frontend (Svelte 5)                 │
+│  SlotRegistry │ gridManager │ WidgetLoader       │
+│  store.svelte.js (5 desktops, WS client)         │
+│  ErrorBoundary │ WidgetSkeleton                  │
+├─────────────────────────────────────────────────┤
+│          API Gateway (FastAPI)                   │
+│  REST /api/v1/* │ WebSocket /ws │ /deubg/stream  │
+│  CORS │ CSP │ Secure Headers                    │
+├─────────────────────────────────────────────────┤
+│           Kernel / Core Layer                   │
+│  Switchboard │ Registry (capabilities@versions) │
+│  Loader (Pluggy) │ SDK (BasePlugin)             │
+│  Schema Guard (TypeAdapter cache)               │
+├─────────────────────────────────────────────────┤
+│            Plugin Layer (10)                    │
+│  system_fs │ system_storage │ system_transport  │
+│  system_executor │ system_logger │ hello_world  │
+│  clock │ shortcut │ test_plugin │ sdk-js        │
+├─────────────────────────────────────────────────┤
+│         Test Layer <span class="new">NEW</span>                          │
+│  12+ files: switchboard, loader, fs, mmap,       │
+│  storage, registry, ui, plugins                 │
+│  Playwright e2e (shell/)                         │
+├─────────────────────────────────────────────────┤
+│           Infrastructure Layer                  │
+│  Redis │ Taskiq Worker │ LanceDB │ Jaeger       │
+│  OTEL Collector │ Shared Memory (Arrow IPC)      │
+└─────────────────────────────────────────────────┘
+</pre>
+
+<h2><span class="new">NEW</span> Patterns (Pass 2)</h2>
+<div class="pat"><h3>9. SlotRegistry (Client-side Registry)</h3><p><strong>Svelte:</strong> registry.svelte.js — $state реактивный реестр UI-слотов с приоритетной сортировкой. <strong>Server-side mirror:</strong> core/registry.list_extensions().</p></div>
+<div class="pat"><h3>10. Arrow Zero-Copy IPC</h3><p><strong>Shared memory + Arrow IPC:</strong> PyArrow таблицы через shared_memory без копирования. 100MB <0.5s allocation.</p></div>
+<div class="pat"><h3>11. WebSocket Auto-Reconnect</h3><p><strong>store.svelte.js:</strong> WebSocket client с exponential backoff reconnect (5s). Состояние в $state.</p></div>
+
+<h2><span class="new">NEW</span> Test Coverage (12+ файлов)</h2>
+<table>
+<tr><th>Файл</th><th>Что тестирует</th><th>Тип</th></tr>
+<tr><td>test_switchboard.py</td><td>Routing, schema validation, circular deps, no-schema capability</td><td>pytest-asyncio</td></tr>
+<tr><td>test_loader.py</td><td>Plugin discovery, broken manifest, import error, registry listing</td><td>pytest</td></tr>
+<tr><td>test_fs_provider.py</td><td>List, read/write, sandbox violation, hash, watchdog monitoring</td><td>pytest-asyncio</td></tr>
+<tr><td>test_mmap_transport.py</td><td>Alloc/free, Arrow zero-copy IPC, 100MB perf (<0.5s)</td><td>pytest-asyncio</td></tr>
+<tr><td>test_storage.py</td><td>LanceDB set/get/search/batch_insert</td><td>pytest-asyncio</td></tr>
+<tr><td>tests/core/ (6 files)</td><td>base_plugin, desktop_sync, registry, settings_schema, static_paths, ui_manifest, ui_registry</td><td>pytest</td></tr>
+<tr><td>Playwright (shell/)</td><td>E2E frontend tests</td><td>Playwright</td></tr>
+</table>
+
+<p><a href="index.html">← index.html</a></p>
+</body></html>

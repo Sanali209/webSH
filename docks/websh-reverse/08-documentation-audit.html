@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head><meta charset="UTF-8"><title>Шаг 8: Documentation Audit [WEB]</title>
+<style>
+  body { background:#0d1117; color:#c9d1d9; font-family:system-ui,sans-serif; max-width:1000px; margin:auto; padding:2rem; }
+  h1 { background:linear-gradient(135deg,#00d4ff,#7c3aed); -webkit-background-clip:text; }
+  h2 { color:#58a6ff; border-bottom:1px solid #30363d; }
+  table { width:100%; border-collapse:collapse; margin:1rem 0; }
+  .badge { display:inline-block; padding:2px 8px; border-radius:4px; font-size:.8rem; background:#1f2937; color:#f0c674; }
+  .ok { color:#3fb950; } .warn { color:#d29922; }
+</style></head>
+<body>
+<span class="badge">Шаг 8/14</span>
+<h1>📝 Documentation Audit [WEB]</h1>
+
+<h2>📚 Inventory</h2>
+<table>
+<tr><th>Группа</th><th>Кол-во</th><th>Качество</th></tr>
+<tr><td>docs/</td><td>~15 файлов</td><td class="ok">✅ Diátaxis структура (tutorials/how-to/reference/explanation)</td></tr>
+<tr><td>docs/iteration_2/</td><td>~8 файлов</td><td class="ok">✅ Подробное планирование фаз</td></tr>
+<tr><td>docs/roadmap/</td><td>5 файлов</td><td class="ok">✅ Roadmap по фазам</td></tr>
+<tr><td>README.md</td><td>1</td><td class="ok">✅ Хороший README с командами</td></tr>
+<tr><td>Docstrings</td><td>Средне</td><td class="warn">⚠️ Есть, не везде</td></tr>
+<tr><td>Type Hints</td><td>~70%</td><td class="warn">⚠️ Основные файлы есть, но не total</td></tr>
+</table>
+
+<h2>📖 Ключевые документы</h2>
+<ul>
+<li><strong>DESIGN.md</strong> + <strong>DESIGN_EXTENDED.md</strong> — архитектура</li>
+<li><strong>ROADMAP.md</strong> + docs/roadmap/phase*</li>
+<li><strong>tutorials/</strong> — create-plugin, start-kernel</li>
+<li><strong>how-to/</strong> — add-capability, create-ui-extension</li>
+<li><strong>reference/</strong> — kernel-api</li>
+<li><strong>explanation/</strong> — capability-broker</li>
+<li><strong>iteration_2/</strong> — critique, plan, roadmap, phases 1-5</li>
+</ul>
+<p><a href="index.html">← index.html</a></p>
+</body></html>

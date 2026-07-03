@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head><meta charset="UTF-8"><title>Шаг 13: SWOT + Tech Debt + Roadmap</title>
+<style>
+  body { background:#0d1117; color:#c9d1d9; font-family:system-ui,sans-serif; max-width:1000px; margin:auto; padding:2rem; }
+  h1 { background:linear-gradient(135deg,#00d4ff,#7c3aed); -webkit-background-clip:text; }
+  h2 { color:#58a6ff; border-bottom:1px solid #30363d; }
+  table { width:100%; border-collapse:collapse; margin:1rem 0; }
+  th,td { padding:.5rem; text-align:left; border-bottom:1px solid #30363d; }
+  .badge { display:inline-block; padding:2px 8px; border-radius:4px; font-size:.8rem; background:#1f2937; color:#f0c674; }
+  .swot-s { background:#0d2818; border:1px solid #3fb950; border-radius:6px; padding:.8rem; }
+  .swot-w { background:#281010; border:1px solid #f85149; border-radius:6px; padding:.8rem; }
+  .swot-o { background:#0d1f28; border:1px solid #58a6ff; border-radius:6px; padding:.8rem; }
+  .swot-t { background:#281d0d; border:1px solid #d29922; border-radius:6px; padding:.8rem; }
+</style></head>
+<body>
+<span class="badge">Шаг 13/14</span>
+<h1>📊 SWOT + Tech Debt + Roadmap</h1>
+
+<div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
+<div class="swot-s"><h3>✅ Strengths</h3><ul><li>Чистая capability broker архитектура</li><li>Plugin SDK с @capability decorator</li><li>OpenTelemetry интеграция из коробки</li><li>Docker-first деплой</li><li>Хорошая документация (Diátaxis)</li><li>Security-first (CSP, sandbox, whitelist)</li><li>Async-first с Taskiq</li></ul></div>
+<div class="swot-w"><h3>❌ Weaknesses</h3><ul><li>Нет тестов</li><li>Нет auth/аутентификации</li><li>WebSocket /ws — не используется</li><li>Event system — не реализован</li><li>Callback через HTTP loopback</li><li>Desktop sync — полный оверрайт</li></ul></div>
+<div class="swot-o"><h3>🌍 Opportunities</h3><ul><li>Auth (JWT + Context.token)</li><li>Real-time event bus (Redis PubSub)</li><li>Plugin settings UI из JSON schema</li><li>Multi-desktop support</li><li>Визуальный plugin editor</li><li>AI integration через system_executor</li></ul></div>
+<div class="swot-t"><h3>⚠️ Threats</h3><ul><li>Конкуренция: Nextcloud, ownCloud web</li><li>Svelte 5 — новое API, мало материалов</li><li>LanceDB — нишевый, маленькое комьюнити</li><li>Taskiq — менее популярен, чем Celery</li><li>Проект может не найти adoption</li></ul></div></div>
+
+<h2>🧹 Tech Debt</h2>
+<table>
+<tr><th>Долг</th><th>Severity</th></tr>
+<tr><td>Нет тестов</td><td>High</td></tr>
+<tr><td>WebSocket /ws не используется</td><td>Low</td></tr>
+<tr><td>Auth не реализован</td><td>High</td></tr>
+<tr><td>Event system заглушка</td><td>Medium</td></tr>
+<tr><td>Desktop sync без diff/merge</td><td>Medium</td></tr>
+<tr><td>Callback HTTP loopback — хрупкий</td><td>Medium</td></tr>
+<tr><td>CORS allow_origins=["*"]</td><td>Low (dev)</td></tr>
+</table>
+
+<h2>🛤️ Рекомендации</h2>
+<table>
+<tr><th>Приоритет</th><th>Что сделать</th></tr>
+<tr><td>Critical</td><td>Добавить тесты (pytest + asyncio)</td></tr>
+<tr><td>Critical</td><td>Реализовать auth (JWT middleware + Context.token validation)</td></tr>
+<tr><td>High</td><td>Заменить HTTP callback на Redis PubSub</td></tr>
+<tr><td>High</td><td>Реализовать event system (Redis PubSub → Switchboard)</td></tr>
+<tr><td>Medium</td><td>Desktop sync с diff/merge вместо оверрайта</td></tr>
+<tr><td>Medium</td><td>Plugin settings UI из JSON schema</td></tr>
+<tr><td>Low</td><td>Подключить WebSocket /ws к Switchboard</td></tr>
+</table>
+<p><a href="index.html">← index.html</a></p>
+</body></html>

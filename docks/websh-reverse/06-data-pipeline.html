@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head><meta charset="UTF-8"><title>Шаг 6: Data Pipeline — PC Center v3.0</title>
+<style>
+  body { background:#0d1117; color:#c9d1d9; font-family:system-ui,sans-serif; max-width:1000px; margin:auto; padding:2rem; }
+  h1 { background:linear-gradient(135deg,#00d4ff,#7c3aed); -webkit-background-clip:text; }
+  h2 { color:#58a6ff; border-bottom:1px solid #30363d; }
+  table { width:100%; border-collapse:collapse; margin:1rem 0; }
+  th,td { padding:.5rem; text-align:left; border-bottom:1px solid #30363d; }
+  .badge { display:inline-block; padding:2px 8px; border-radius:4px; font-size:.8rem; background:#1f2937; color:#f0c674; }
+  .stage { border:1px solid #30363d; border-radius:6px; padding:.8rem; margin:.8rem 0; }
+</style></head>
+<body>
+<span class="badge">Шаг 6/14</span>
+<h1>🔀 Data Pipeline — Capability Broker Chain</h1>
+
+<h2>Pipeline Flow</h2>
+<pre>
+Svelte Frontend / External Client
+    │
+    ▼ POST /api/v1/call { domain, params, context }
+Switchboard.dispatch()
+    ├─ 1. Trace depth check (max 10)
+    ├─ 2. Push to trace_stack
+    ├─ 3. Registry.resolve(domain) → handler
+    ├─ 4. Schema Guard (TypeAdapter validation)
+    ├─ 5. Execute handler(params, context)
+    └─ 6. Return { status, data } or { status, error }
+    │
+    ▼
+Plugin Handler (e.g. fs.list, hello.ping)
+    │
+    ▼ Optional: Taskiq Worker
+    core.execute → Redis Queue → Worker → Callback via HTTP loopback
+</pre>
+
+<h2>📡 Pipeline Stages</h2>
+
+<div class="stage"><h3>1. API Gateway</h3><p>FastAPI POST /api/v1/call — единая точка входа. CORS, CSP, security headers.</p></div>
+<div class="stage"><h3>2. Switchboard Dispatch</h3><p>Pydantic validation envelope → trace depth check → Registry resolve → Schema Guard (TypeAdapter) → handler execution.</p></div>
+<div class="stage"><h3>3. Registry Resolution</h3><p>Registry хранит domain@version → handler mapping. Поддерживает latest version resolution.</p></div>
+<div class="stage"><h3>4. Plugin Execution</h3><p>Handler из плагина выполняется async. Может вызвать другие capability через self.call().</p></div>
+<div class="stage"><h3>5. Taskiq Background Queue</h3><p>system_executor → generic_executor_task.kiq() → Redis → Worker → HTTP callback task.finished.</p></div>
+<div class="stage"><h3>6. OpenTelemetry Tracing</h3><p>OTEL SpanProcessor экспортирует spans в Jaeger + WebSocket broadcast для live debugging.</p></div>
+<div class="stage"><h3>7. Desktop State Sync</h3><p>LanceDB хранит DesktopConfig. Полный оверрайт при POST, чтение при GET.</p></div>
+
+<h2>🔧 Plugin Capabilities Map</h2>
+<table>
+<tr><th>Плагин</th><th>Capability</th><th>Тип</th></tr>
+<tr><td>hello_world</td><td>hello.ping</td><td>Synchronous</td></tr>
+<tr><td>system_fs</td><td>fs.list, fs.read, fs.write, fs.hash</td><td>Async + ThreadPool</td></tr>
+<tr><td>system_storage</td><td>storage.set, storage.get, storage.search, storage.batch_insert</td><td>Async + ThreadPool (LanceDB)</td></tr>
+<tr><td>system_transport</td><td>transport.alloc, transport.free</td><td>Synchronous (shared_memory)</td></tr>
+<tr><td>system_executor</td><td>core.execute</td><td>Async → Taskiq worker</td></tr>
+</table>
+<p><a href="index.html">← index.html</a></p>
+</body></html>
